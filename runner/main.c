@@ -28,6 +28,7 @@
 #include "backend_decls.h"   /* own decls — native builds have no clownmdemu paths */
 #include "genesis_clocks.h"
 #include "frame_pacer.h"
+#include "hirate.h"
 #include "audio.h"
 #include "cosim.h"
 #include "png_write.h"
@@ -578,6 +579,53 @@ static void own_scanline_sink(void *u, int line, const uint32_t *argb, int width
     }
     if (g_game_spec.video && g_game_spec.video->overlay_scanline)
         g_game_spec.video->overlay_scanline(&g_machine.vdp, line, row, s_screen_width);
+}
+
+/* Present the frame halfway between the previous and the current tick, half a
+ * period before the current tick's deadline. GENESIS_HIGH_REFRESH_SELFTEST
+ * also checks that alpha 1 reproduces the real frame. */
+static void hirate_present(SDL_Renderer *renderer, const FramePacer *pacer)
+{
+    enum { STRIDE = GVDP_MAX_WIDTH * 2 };
+    static uint32_t *buf;
+    static SDL_Texture *tex;
+    static int tex_w, tex_h, selftest = -1;
+    static unsigned long checked, failed;
+    int w, h;
+    if (!buf) buf = (uint32_t *)malloc((size_t)STRIDE * GVDP_MAX_HEIGHT * 2 * sizeof(uint32_t));
+    if (!buf) return;
+    if (selftest < 0) selftest = getenv("GENESIS_HIGH_REFRESH_SELFTEST") != NULL;
+    if (selftest && hirate_render(1.0, buf, STRIDE, &w, &h)) {
+        int bad = 0;
+        for (int y = 0; y < 2 * h && !bad; y++)
+            for (int x = 0; x < 2 * w; x++)
+                if (buf[(size_t)y * STRIDE + x] != s_framebuf[(y / 2) * MAX_SCREEN_WIDTH + x / 2]) { bad = 1; break; }
+        checked++; failed += (unsigned long)bad;
+        if (bad || checked % 120 == 0)
+            fprintf(stderr, "[HIRATE] selftest checked=%lu failed=%lu\n", checked, failed);
+    }
+    if (!hirate_render(0.5, buf, STRIDE, &w, &h)) return;
+    if (!tex || tex_w != 2 * w || tex_h != 2 * h) {
+        if (tex) SDL_DestroyTexture(tex);
+        tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+                                SDL_TEXTUREACCESS_STREAMING, 2 * w, 2 * h);
+        if (!tex) return;
+        SDL_SetTextureScaleMode(tex, SDL_ScaleModeNearest);
+        tex_w = 2 * w; tex_h = 2 * h;
+    }
+    SDL_UpdateTexture(tex, NULL, buf, STRIDE * (int)sizeof(uint32_t));
+    update_render_logical_size(renderer);
+    SDL_RenderClear(renderer);
+    SDL_Rect src = { 0, 0, 2 * w, 2 * h };
+    SDL_RenderCopy(renderer, tex, &src, NULL);
+    if (pacer->active) {
+        Uint64 mid = pacer->next - pacer->period / 2;
+        while (SDL_GetPerformanceCounter() < mid) {
+            Uint64 left_ms = (mid - SDL_GetPerformanceCounter()) * 1000 / SDL_GetPerformanceFrequency();
+            if (left_ms > 2) SDL_Delay((Uint32)(left_ms - 1));
+        }
+    }
+    SDL_RenderPresent(renderer);
 }
 
 static void custom_video_prepare(void)
@@ -2841,6 +2889,22 @@ int main(int argc, char *argv[])
                         (target_fps_from_ini > 0.0) ? target_fps_from_ini :
                                                        (60000.0 / 1001.0);  /* NTSC */
     fprintf(stderr, "[pacer] target frame rate: %.4f fps\n", target_fps);
+    {
+        const char *hr = getenv("GENESIS_HIGH_REFRESH");
+        SDL_DisplayMode dm;
+        int hz = SDL_GetCurrentDisplayMode(SDL_GetWindowDisplayIndex(window), &dm) == 0
+                 ? dm.refresh_rate : 0;
+        if (hr && atoi(hr) > 0) {
+            /* Two vsynced presents per tick halve the game speed below 100 Hz;
+             * GENESIS_HIGH_REFRESH=2 skips the check. */
+            if (atoi(hr) < 2 && hz > 0 && hz < 100) {
+                fprintf(stderr, "[HIRATE] off: display refresh %d Hz is below 100 Hz\n", hz);
+            } else {
+                hirate_set_enabled(1);
+                fprintf(stderr, "[HIRATE] high-refresh presentation on (display %d Hz)\n", hz);
+            }
+        }
+    }
     int debug_port = debug_port_cli ? debug_port_cli :
                      (debug_port_from_ini ? debug_port_from_ini :
                       DEFAULT_DEBUG_PORT);
@@ -3607,6 +3671,12 @@ session_begin:;
             present_src = s_present_buf;
         }
 #endif
+        if (hirate_enabled() && present_src == s_framebuf && !(turbo || runtime_uncapped)
+#if GENESIS_HAS_RECOMP_NET
+            && !genesis_netplay_active()
+#endif
+            )
+            hirate_present(renderer, &frame_pacer);
         update_render_logical_size(renderer);
         SDL_RenderClear(renderer);
 

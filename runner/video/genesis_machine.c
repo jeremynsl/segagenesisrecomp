@@ -4,6 +4,7 @@
  * Z80, and our VDP, delivering V/H interrupts. Original implementation.
  */
 #include "genesis_machine.h"
+#include "hirate.h"
 #ifdef GENESIS_Z80_RECOMP
 #include "../z80_recomp.h"
 #endif
@@ -547,6 +548,7 @@ void machine_run_frame(GenesisScanlineSink sink, void *user)
                 sink(user, row, rowbuf, n);
             }
         }
+        if (sink && line == active_h - 1) hirate_capture(&m->vdp, s_cram_argb);
 
         m->master_cycle += MASTER_PER_LINE;
     }
