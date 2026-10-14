@@ -31,11 +31,14 @@ import sys
 try: sys.stdout.reconfigure(encoding="utf-8", newline="\n")
 except Exception: pass
 
+LINE_PREFIX = r"^(?:\(\d+\)\s*)?\s*\d+/\s*([0-9A-Fa-f]+)\s*:\s+"   # [(include depth)] lineno / hex_offset :
 LABEL_RE = re.compile(
-    r"^\s*\d+/\s*([0-9A-Fa-f]+)\s*:\s+"   # lineno / hex_offset :
-    r"(?:\(MACRO\)\s*)?"                    # optional (MACRO) tag
+    LINE_PREFIX +
+    r"((?:[0-9A-Fa-f]{2,8}\s+)*)"          # bytes emitted when label and instruction share a line
+    r"(?:\(MACRO[^)]*\)\s*)?"               # optional macro tag
     r"(?:=\$[0-9A-Fa-f]+\s+)?"              # equ-style assignments aren't labels
     r"(\.?[A-Za-z_][A-Za-z0-9_.]*):"       # label terminated by colon (optional leading dot for asm68k local labels)
+    r"\s*(\S*)"                             # same-line directive / mnemonic, if any
 )
 # asm68k anonymous local labels: `+`, `-`, `++`, `--`, ... with no trailing
 # colon in the .lst output. These are extremely common in the Sonic disasms
@@ -45,20 +48,27 @@ LABEL_RE = re.compile(
 # walker discover the instruction body they introduce, which means the
 # JMP-table emitter can route to them via in-function switch.
 ANON_LABEL_RE = re.compile(
-    r"^\s*\d+/\s*([0-9A-Fa-f]+)\s*:\s+"   # lineno / hex_offset :
+    LINE_PREFIX +
     r"([+\-]+)(?=\s|;|$)"                   # one or more + / - chars, no colon
 )
 # A line that shows the assembler emitted bytes at this address. Two shapes:
 #   "    1234/   ABCD : 46FC 2300           \tmove ..."  (instruction)
 #   "    1235/   ABD0 : 0008                       dc.w ..."  (data)
 EMIT_RE = re.compile(
-    r"^\s*\d+/\s*([0-9A-Fa-f]+)\s*:\s+"
+    LINE_PREFIX +
     r"([0-9A-Fa-f]{2,8}(?:\s+[0-9A-Fa-f]{2,8})*)\s+"  # one or more hex byte words
+    r"(?:\(MACRO[^)]*\)\s*)?"                          # optional macro tag
     r"(\S+)"                                            # the directive / mnemonic
 )
 DATA_DIRECTIVE_RE = re.compile(r"^(?:dc\.[bwl]|dcb\.[bwl]|ds\.[bwl]|"
                                r"binclude|incbin|even|align|cnop|org)$",
                                re.IGNORECASE)
+# `cpu <name>`, `save`, `restore`: rows assembled for another CPU (an embedded
+# Z80 driver) list addresses in that CPU's space and are skipped.
+CPU_DIRECTIVE_RE = re.compile(
+    LINE_PREFIX +
+    r"(?:\(MACRO[^)]*\)\s*)?(?:[A-Za-z_.][\w.]*:\s*)?(cpu|save|restore)\b(?!:)[ \t]*([^\s;]*)",
+    re.IGNORECASE)
 
 
 def scan_lst(path: str, max_addr: int):
@@ -72,13 +82,32 @@ def scan_lst(path: str, max_addr: int):
     labels: dict[int, str] = {}
     code_offsets: set[int] = set()
     data_offsets: set[int] = set()
+    cpu, cpu_stack = "68000", []
     with open(path, "r", encoding="utf-8", errors="ignore") as f:
         for line in f:
+            line_cpu = cpu   # a label on a directive line belongs to the CPU before it
+            c = CPU_DIRECTIVE_RE.match(line)
+            if c:
+                op = c.group(2).lower()
+                if op == "cpu":
+                    cpu = c.group(3)
+                elif op == "save":
+                    cpu_stack.append(cpu)
+                elif cpu_stack:
+                    cpu = cpu_stack.pop()
+            if line_cpu != "68000":
+                continue
             m = LABEL_RE.match(line)
             if m:
                 addr = int(m.group(1), 16)
                 if addr < max_addr:
-                    labels.setdefault(addr, m.group(2))
+                    labels.setdefault(addr, m.group(3))
+                    if m.group(2) and m.group(4) and \
+                            addr not in code_offsets and addr not in data_offsets:
+                        if DATA_DIRECTIVE_RE.match(m.group(4)):
+                            data_offsets.add(addr)
+                        else:
+                            code_offsets.add(addr)
                 continue
             a = ANON_LABEL_RE.match(line)
             if a:
