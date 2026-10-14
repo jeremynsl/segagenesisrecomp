@@ -239,6 +239,9 @@ int gvdp_output_height(const GVDP *v);          /* raster height x2 in IM2     *
  * for shadow/highlight offsets). `out` must hold at least gvdp_screen_width()
  * entries. Returns the number of pixels written. */
 int gvdp_render_scanline(GVDP *v, int line, uint8_t *out);
+/* 1 if any VDP access happened on active lines after line 0 since the last
+ * call; clears the flag. Such a frame differs from an end-of-frame snapshot. */
+int gvdp_take_raster_write(void);
 const char *gvdp_plane_implementation(void);
 
 /* ---- Per-frame raster timing ---------------------------------------------- */

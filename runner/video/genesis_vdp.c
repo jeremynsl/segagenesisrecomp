@@ -124,11 +124,15 @@ void gvdp_reset(GVDP *v)
 GVdpEvent g_gvdp_events[GVDP_EVENT_CAP];
 uint32_t  g_gvdp_event_seq = 0;
 
+static int s_raster_write;
+
 static void evt_push(const GVDP *v, uint8_t kind, uint8_t code, uint16_t addr,
                      uint16_t value, uint16_t inc, uint16_t len, uint32_t src,
                      uint8_t reason)
 {
     GVdpEvent *e = &g_gvdp_events[g_gvdp_event_seq % GVDP_EVENT_CAP];
+    if (!v->in_vblank && v->scanline > 0 && v->scanline < gvdp_screen_height(v))
+        s_raster_write = 1;
     e->seq       = g_gvdp_event_seq++;
     e->kind      = kind;
     e->code      = code;
@@ -140,6 +144,13 @@ static void evt_push(const GVDP *v, uint8_t kind, uint8_t code, uint16_t addr,
     e->inc       = inc;
     e->len       = len;
     e->src       = src;
+}
+
+int gvdp_take_raster_write(void)
+{
+    int w = s_raster_write;
+    s_raster_write = 0;
+    return w;
 }
 
 /* ---- Geometry / mode queries ---------------------------------------------- */

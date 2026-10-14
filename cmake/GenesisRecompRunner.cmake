@@ -76,6 +76,7 @@ set(GENESIS_RUNNER_CORE_SOURCES
     video/genesis_vdp.c
     video/genesis_bus.c
     video/genesis_machine.c
+    video/hirate.c
     external/superzazu/z80.c
     m68k_interp.c)
 
