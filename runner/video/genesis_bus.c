@@ -140,7 +140,7 @@ void gbus_init(GenesisBus *b, GVDP *vdp)
  * longwords). Called from main.c AFTER glue_init populates g_rom —
  * machine_init/gbus_init run before the ROM copy exists. Sonic 3:
  * "RA F8 20" start $200001 end $2003FF (odd-byte serial FRAM). */
-void gbus_sram_setup(GenesisBus *b)
+void gbus_sram_setup(GenesisBus *b, uint32_t rom_len)
 {
     if (g_rom[0x1B0] == 'R' && g_rom[0x1B1] == 'A') {
         uint32_t start = ((uint32_t)g_rom[0x1B4] << 24) | ((uint32_t)g_rom[0x1B5] << 16)
@@ -153,6 +153,9 @@ void gbus_sram_setup(GenesisBus *b)
             b->sram_base    = base;
             b->sram_end     = end;
             b->sram_size    = end - base + 1u;
+            /* No ROM under the range: always mapped (Phantasy Star II never
+             * writes $A130F1). */
+            b->sram_enabled = base >= rom_len;
         }
     }
 }
@@ -178,9 +181,7 @@ void gbus_sram_set_geometry(GenesisBus *b, uint32_t start, uint32_t end)
 }
 
 /* SRAM overlay active for this address? The $A130F1 enable bit gates the
- * overlay when the SRAM range shadows ROM (cart < 4 MB games still toggle it;
- * honour the bit always — games that never touch $A130F1 and expect
- * always-mapped SRAM can be handled when one shows up). */
+ * overlay; gbus_sram_setup sets it at power-on when the range shadows no ROM. */
 static int sram_hit(const GenesisBus *b, uint32_t a)
 {
     return b->sram_present && b->sram_enabled

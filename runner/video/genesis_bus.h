@@ -77,9 +77,11 @@ typedef struct GenesisBus {
 
 void gbus_init(GenesisBus *b, GVDP *vdp);
 
-/* Parse battery-SRAM geometry from the ROM header. Must run AFTER g_rom is
- * populated (glue_init) — gbus_init runs before the ROM copy exists. */
-void gbus_sram_setup(GenesisBus *b);
+/* Parse battery-SRAM geometry from the ROM header. SRAM that starts at or
+ * past rom_len shadows no ROM and is mapped from power-on; $A130F1 still
+ * toggles it. Must run AFTER g_rom is populated (glue_init) — gbus_init runs
+ * before the ROM copy exists. */
+void gbus_sram_setup(GenesisBus *b, uint32_t rom_len);
 
 /* Map battery SRAM over the inclusive byte range [start & ~1, end] when the
  * cart's standard header does NOT declare it (the Sonic 3 & Knuckles lock-on
