@@ -559,6 +559,54 @@ static void scanline_rendered_cb(void *user_data,
     }
 }
 
+static int s_hud_on = -1;          /* -1: not yet read from GENESIS_HUD */
+
+static int game_hud_on(void)
+{
+    if (s_hud_on < 0) {
+        const char *e = getenv("GENESIS_HUD");
+        s_hud_on = e && atoi(e) != 0;
+    }
+    return s_hud_on;
+}
+
+static void toggle_game_hud(void)
+{
+    if (!g_game_spec.hud) return;
+    s_hud_on = !game_hud_on();
+    fprintf(stderr, "[HUD] %s\n", s_hud_on ? "on" : "off");
+}
+
+/* Blend the game's HUD bitmap over the frame just copied to the canvas.
+ * The frame fills the logical canvas, so frame pixels scale to it. */
+static void draw_game_hud(SDL_Renderer *renderer)
+{
+    static SDL_Texture *tex;
+    static int tex_w, tex_h;
+    GameHud hud = {0};
+    int w, h, lw, lh;
+    if (!game_hud_on() || !g_game_spec.hud || s_screen_width <= 0 || s_screen_height <= 0 ||
+        !g_game_spec.hud(s_screen_width, s_screen_height, &hud) ||
+        !hud.pixels || hud.w <= 0 || hud.h <= 0)
+        return;
+    w = hud.w; h = hud.h;
+    if (!tex || tex_w != w || tex_h != h) {
+        if (tex) SDL_DestroyTexture(tex);
+        tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+                                SDL_TEXTUREACCESS_STREAMING, w, h);
+        if (!tex) return;
+        SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
+        SDL_SetTextureScaleMode(tex, SDL_ScaleModeNearest);
+        tex_w = w; tex_h = h;
+    }
+    SDL_UpdateTexture(tex, NULL, hud.pixels, w * (int)sizeof(uint32_t));
+    SDL_RenderGetLogicalSize(renderer, &lw, &lh);
+    if (lw <= 0 || lh <= 0) SDL_GetRendererOutputSize(renderer, &lw, &lh);
+    SDL_FRect dst = { (float)hud.x * lw / s_screen_width, (float)hud.y * lh / s_screen_height,
+                      (float)hud.dst_w * lw / s_screen_width, (float)hud.dst_h * lh / s_screen_height };
+    SDL_RenderCopyF(renderer, tex, NULL, &dst);
+}
+
 #include "genesis_machine.h"
 /* Own-backend scanline sink: copy our VDP's rendered ARGB row to the framebuf. */
 static void own_scanline_sink(void *u, int line, const uint32_t *argb, int width)
@@ -3112,6 +3160,9 @@ session_begin:;
                     ev.key.keysym.sym == SDLK_F8) {
                     overlay_request = 1; continue;
                 }
+                if (!ev.key.repeat && ev.key.keysym.sym == SDLK_F10) {
+                    toggle_game_hud(); continue;
+                }
 #if !RECOMP_LAUNCHER
                 if (ev.key.keysym.sym == SDLK_ESCAPE) running = 0;
 #endif
@@ -3584,6 +3635,7 @@ session_begin:;
          * s_framebuf (the verified/hashed raw VDP output) is never modified. */
         if (!benchmark_frames) {
         const uint32_t *present_src = s_framebuf;
+        int hud_ok = 1;                /* no game HUD over the runtime menu */
         if (s_color_lut_on) {
             color_lut_map_frame(&s_color_lut, s_framebuf, s_present_buf,
                                 s_screen_width, s_screen_height,
@@ -3605,6 +3657,7 @@ session_begin:;
                 (size_t)s_frame_stride * MAX_SCREEN_HEIGHT * sizeof(uint32_t));
             recomp_runtime_ui_render_argb8888(s_runtime_ui.ui, s_present_buf, s_screen_width, s_screen_height, MAX_SCREEN_WIDTH * 4);
             present_src = s_present_buf;
+            hud_ok = 0;
         }
 #endif
         update_render_logical_size(renderer);
@@ -3663,6 +3716,8 @@ session_begin:;
             peer_view_was_active = peer_view_is_active;
         }
         SDL_RenderCopy(renderer, frame_texture, &src, NULL);
+        if (hud_ok && !netplay_peer_view_active())   /* HUD rects are full-frame; the peer view crops */
+            draw_game_hud(renderer);
 #if GENESIS_HAS_RECOMP_NET
         /* Process the peer INPUT and emit our CONFIRM before the blocking
          * present, so confirmation delivery overlaps vsync as well. */

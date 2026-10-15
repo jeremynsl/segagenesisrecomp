@@ -37,6 +37,15 @@ typedef struct {
     void      (*handler)(int id, const char *json_line);
 } GameDebugCommand;
 
+/* ARGB8888 bitmap (alpha 0 = transparent) scaled into the frame-pixel
+ * rectangle (x, y, dst_w, dst_h). The bitmap may be finer than the frame:
+ * it is sampled at output resolution, never written into the framebuffer. */
+typedef struct {
+    const uint32_t *pixels;
+    int w, h;
+    int x, y, dst_w, dst_h;
+} GameHud;
+
 typedef struct GameSpec {
     const GameVideo *video;          /* NULL = native VDP presentation only */
     unsigned logical_players;       /* 0 = native two ports; host input/UI capacity */
@@ -247,6 +256,14 @@ typedef struct GameSpec {
      * non-zero when this build cannot run it (missing owner assets...): the
      * launch is then refused. NULL = nothing to adopt. */
     int       (*netplay_config_adopt)(const char *line);
+
+    /* ---- Presentation HUD ----
+     * Optional bitmap drawn over the presented gameplay frame, after any
+     * color model; see GameHud. Not drawn in the netplay peer view or under
+     * the runtime menu and save/rewind panels. frame_w/frame_h are the
+     * current frame size. The runner owns visibility (GENESIS_HUD=1, F10).
+     * Return 0 to draw nothing. Must not mutate the guest. */
+    int       (*hud)(int frame_w, int frame_h, GameHud *out);
 
     /* Verified-clean native overrides. Native builds typically run
      * with size=0 (everything stays as recompiled C); oracle builds
