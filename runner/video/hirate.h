@@ -29,9 +29,13 @@ typedef struct HirateSpriteRef {
  * owners, sprites pair by link position, tile and size. */
 void hirate_set_sprite_refs(const HirateSpriteRef *refs, int count);
 
+/* Per-color transform applied to both captured palettes before they blend. */
+typedef uint32_t (*HirateColorMap)(uint32_t argb);
+
 /* Draw the frame at `alpha` (0 = previous capture, 1 = current) into `out`
- * (ARGB, row stride `stride` pixels): 2*w x 2*h pixels. Returns 0 when no
- * interpolation applies; the caller then presents the real frame. */
-int hirate_render(double alpha, uint32_t *out, int stride, int *w, int *h);
+ * (ARGB, row stride `stride` pixels): 2*w x 2*h pixels. `map` may be NULL.
+ * Returns 0 when no interpolation applies; the caller then presents the
+ * real frame. */
+int hirate_render(double alpha, HirateColorMap map, uint32_t *out, int stride, int *w, int *h);
 
 #endif

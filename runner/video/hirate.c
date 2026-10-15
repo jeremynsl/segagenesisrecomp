@@ -163,7 +163,7 @@ static uint32_t lerp_argb(uint32_t a, uint32_t b, double t)
     return out;
 }
 
-int hirate_render(double alpha, uint32_t *out, int stride, int *w, int *h)
+int hirate_render(double alpha, HirateColorMap map, uint32_t *out, int stride, int *w, int *h)
 {
     const Capture *c = &s_cap[s_cur], *p = &s_cap[s_cur ^ 1];
     if (!s_enabled || !c->valid || !p->valid || c->raster_dirty) return 0;
@@ -192,8 +192,11 @@ int hirate_render(double alpha, uint32_t *out, int stride, int *w, int *h)
         ks[i][1] = half_steps(t, dy);
     }
 
-    for (int i = 0; i < GVDP_OUTPUT_PALETTE_SIZE; i++)
-        s_pal[i] = c->pal[i] == p->pal[i] ? c->pal[i] : lerp_argb(p->pal[i], c->pal[i], alpha);
+    for (int i = 0; i < GVDP_OUTPUT_PALETTE_SIZE; i++) {
+        uint32_t cc = map ? map(c->pal[i]) : c->pal[i];
+        uint32_t pc = map ? map(p->pal[i]) : p->pal[i];
+        s_pal[i] = cc == pc ? cc : lerp_argb(pc, cc, alpha);
+    }
 
     int height = gvdp_screen_height(&c->vdp), width = 0;
     unsigned hbase = hscroll_base(&c->vdp);
