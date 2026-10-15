@@ -145,6 +145,12 @@ LABEL_DECL_RE = re.compile(
 ALIAS_RE = re.compile(
     r"(?<![\w.])([A-Za-z_][\w.]*)\s*:=\s*([A-Za-z_][\w.]*)"
 )
+# PC-indexed dispatch through a label, e.g. `jmp loc_D17A-4(pc,d1.w)`.
+# Groups: label, sign, displacement.
+PC_DISPATCH_RE = re.compile(
+    r"^\s*(?:[A-Za-z_][\w.]*\s*:\s*)*j(?:mp|sr)\s+([A-Za-z_][\w.]*)"
+    r"\s*(?:([+-])\s*(\$[0-9A-Fa-f]+|\d+))?\s*\(\s*pc\s*,\s*[ad][0-7](?:\.[wl])?\s*\)",
+    re.IGNORECASE)
 
 
 def parse_emit_row(rest: str):
@@ -346,6 +352,19 @@ def main() -> int:
         if name.startswith(_AUTO_PREFIX): continue
         if name.startswith(("+", "-", ".")): continue
         table_base_addrs.add(name_addr)
+    # The target of a PC-indexed jmp/jsr through any label is also a table
+    # base: label+k for a positive k. A label-k operand is taken as an
+    # index that starts above 0, so the label is the base; the row at
+    # label-k is usually the tail of the code before the table (a zero-based
+    # label-k table is not found).
+    for _, _, source in rows:
+        md = PC_DISPATCH_RE.match(source)
+        if md and md.group(1) in label_addr:
+            disp = 0
+            if md.group(2) == "+":
+                tok = md.group(3)
+                disp = int(tok[1:], 16) if tok.startswith("$") else int(tok)
+            table_base_addrs.add(label_addr[md.group(1)] + disp)
 
     for i, (addr, bytes_hex, source) in enumerate(rows):
         if i in used_rows:
