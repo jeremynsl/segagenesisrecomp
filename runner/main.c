@@ -2800,6 +2800,8 @@ int main(int argc, char *argv[])
     if (!benchmark_frames && !runtime_uncapped)
         renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, renderer_flags);
+    int renderer_vsync = 0;      /* the renderer presents with vsync */
+    int vsync_paused   = 0;      /* turbo turned that vsync off */
     if (!renderer) {
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     }
@@ -2815,6 +2817,7 @@ int main(int argc, char *argv[])
                 benchmark_frames ? "GENESISRECOMP_BENCHMARK_RENDERER" : "[VIDEO] renderer",
                 ri.name ? ri.name : "(unknown)",
                 (ri.flags & SDL_RENDERER_PRESENTVSYNC) != 0);
+        renderer_vsync = (ri.flags & SDL_RENDERER_PRESENTVSYNC) != 0;
     }
     update_render_logical_size(renderer);
 
@@ -3386,7 +3389,12 @@ session_begin:;
 #if GENESIS_HAS_RECOMP_NET
           if (genesis_netplay_active()) turbo = 0;
 #endif
-          audio_set_playback_enabled(!turbo); }
+          audio_set_playback_enabled(!turbo);
+          /* A vsynced present caps turbo at the display rate. */
+          if (renderer_vsync && vsync_paused != turbo) {
+              SDL_RenderSetVSync(renderer, !turbo);
+              vsync_paused = turbo;
+          } }
 
 #if GENESIS_HAS_RECOMP_NET
         if (genesis_netplay_active()) {
