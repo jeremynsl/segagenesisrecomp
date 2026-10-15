@@ -588,15 +588,15 @@ static int s_hirate_force;
 static double s_hirate_tick_fps = 60000.0 / 1001.0;
 
 /* Two vsynced presents per tick need twice the tick rate, else the game
- * slows. Displays report whole Hz (119 for 119.88), hence the 1% margin;
- * GENESIS_HIGH_REFRESH=2 skips the check. */
+ * slows. Displays report whole Hz (119 for 119.88), hence the 1% margin; an
+ * unknown rate fails. GENESIS_HIGH_REFRESH=2 skips the check. */
 static int hirate_display_fast_enough(SDL_Window *window, int *hz_out)
 {
     SDL_DisplayMode dm;
     int hz = window && SDL_GetCurrentDisplayMode(SDL_GetWindowDisplayIndex(window), &dm) == 0
              ? dm.refresh_rate : 0;
     *hz_out = hz;
-    return s_hirate_force || hz <= 0 || hz >= 0.99 * 2.0 * s_hirate_tick_fps;
+    return s_hirate_force || (hz > 0 && hz >= 0.99 * 2.0 * s_hirate_tick_fps);
 }
 
 static void hirate_present(SDL_Renderer *renderer, const FramePacer *pacer)
