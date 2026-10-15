@@ -1,6 +1,7 @@
 #include "hirate.h"
 
 #include <math.h>
+#include <stdlib.h>
 #include <string.h>
 
 /* Largest per-tick motion that interpolates; larger jumps are cuts. */
@@ -114,6 +115,13 @@ static int parity_shift(int p, int k)
 
 static int sprite_tile(const GVDP *v, unsigned e) { return rd16(v, e + 4) & 0x07FF; }
 
+/* Same tile and size: entries that could be one sprite across captures. */
+static int same_look(const Capture *c, unsigned ce, const Capture *p, unsigned pe)
+{
+    return sprite_tile(&c->vdp, ce) == sprite_tile(&p->vdp, pe) &&
+           c->vdp.vram[(ce + 2) & 0xFFFF] == p->vdp.vram[(pe + 2) & 0xFFFF];
+}
+
 /* Screen motion of curr SAT entry i since the previous capture. */
 static void sprite_delta(const Capture *c, const Capture *p, int i, int *dx, int *dy)
 {
@@ -131,10 +139,18 @@ static void sprite_delta(const Capture *c, const Capture *p, int i, int *dx, int
     }
     if (i >= p->n) return;
     unsigned ce = c->sat_off[i], pe = p->sat_off[i];
-    if (sprite_tile(&c->vdp, ce) != sprite_tile(&p->vdp, pe)) return;
-    if (c->vdp.vram[(ce + 2) & 0xFFFF] != p->vdp.vram[(pe + 2) & 0xFFFF]) return;
-    *dx = clamp_delta((rd16(&c->vdp, ce + 6) & 0x3FF) - (rd16(&p->vdp, pe + 6) & 0x3FF));
-    *dy = clamp_delta((rd16(&c->vdp, ce) & 0x3FF) - (rd16(&p->vdp, pe) & 0x3FF));
+    if (!same_look(c, ce, p, pe)) return;
+    int cx = rd16(&c->vdp, ce + 6) & 0x3FF, cy = rd16(&c->vdp, ce) & 0x3FF;
+    int ddx = cx - (rd16(&p->vdp, pe + 6) & 0x3FF), ddy = cy - (rd16(&p->vdp, pe) & 0x3FF);
+    /* A look-alike at least as close makes the pair ambiguous; refuse it. */
+    for (int j = 0; j < p->n; j++) {
+        unsigned oe = p->sat_off[j];
+        if (j == i || !same_look(c, ce, p, oe)) continue;
+        int ox = cx - (rd16(&p->vdp, oe + 6) & 0x3FF), oy = cy - (rd16(&p->vdp, oe) & 0x3FF);
+        if (abs(ox) + abs(oy) <= abs(ddx) + abs(ddy)) return;
+    }
+    *dx = clamp_delta(ddx);
+    *dy = clamp_delta(ddy);
 }
 
 static uint32_t lerp_argb(uint32_t a, uint32_t b, double t)
