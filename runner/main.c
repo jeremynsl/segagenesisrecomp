@@ -249,6 +249,11 @@ static void color_lut_setup(void)
     }
 }
 
+static uint32_t color_lut_map_present(uint32_t argb)
+{
+    return color_lut_map_argb(&s_color_lut, argb);
+}
+
 /* ── Widescreen (16:9) opt-in ────────────────────────────────────────────
  * User toggle via GENESIS_WIDESCREEN={1,on,yes,true} (default off) and
  * GENESIS_WIDESCREEN_COLUMNS=<cells/side> (default 8). The toggle only
@@ -619,16 +624,20 @@ static void hirate_present(SDL_Renderer *renderer, const FramePacer *pacer)
     if (!buf) buf = (uint32_t *)malloc((size_t)STRIDE * GVDP_MAX_HEIGHT * 2 * sizeof(uint32_t));
     if (!buf) return;
     if (selftest < 0) selftest = getenv("GENESIS_HIGH_REFRESH_SELFTEST") != NULL;
-    if (selftest && hirate_render(1.0, buf, STRIDE, &w, &h)) {
+    /* Pass 0 checks the raw frame; pass 1 checks the color model against
+     * the mapped frame in s_present_buf. */
+    for (int pass = 0; selftest && pass < 1 + s_color_lut_on; pass++) {
+        const uint32_t *ref = pass ? s_present_buf : s_framebuf;
+        if (!hirate_render(1.0, pass ? color_lut_map_present : NULL, buf, STRIDE, &w, &h)) break;
         int bad = 0;
         for (int y = 0; y < 2 * h && !bad; y++)
             for (int x = 0; x < 2 * w; x++)
-                if (buf[(size_t)y * STRIDE + x] != s_framebuf[(y / 2) * MAX_SCREEN_WIDTH + x / 2]) { bad = 1; break; }
+                if (buf[(size_t)y * STRIDE + x] != ref[(y / 2) * MAX_SCREEN_WIDTH + x / 2]) { bad = 1; break; }
         checked++; failed += (unsigned long)bad;
         if (bad || checked % 120 == 0)
             fprintf(stderr, "[HIRATE] selftest checked=%lu failed=%lu\n", checked, failed);
     }
-    if (!hirate_render(0.5, buf, STRIDE, &w, &h)) return;
+    if (!hirate_render(0.5, s_color_lut_on ? color_lut_map_present : NULL, buf, STRIDE, &w, &h)) return;
     if (!tex || tex_w != 2 * w || tex_h != 2 * h) {
         if (tex) SDL_DestroyTexture(tex);
         tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
@@ -3668,6 +3677,7 @@ session_begin:;
          * s_framebuf (the verified/hashed raw VDP output) is never modified. */
         if (!benchmark_frames) {
         const uint32_t *present_src = s_framebuf;
+        int ui_overlay = 0;
         if (s_color_lut_on) {
             color_lut_map_frame(&s_color_lut, s_framebuf, s_present_buf,
                                 s_screen_width, s_screen_height,
@@ -3689,9 +3699,10 @@ session_begin:;
                 (size_t)s_frame_stride * MAX_SCREEN_HEIGHT * sizeof(uint32_t));
             recomp_runtime_ui_render_argb8888(s_runtime_ui.ui, s_present_buf, s_screen_width, s_screen_height, MAX_SCREEN_WIDTH * 4);
             present_src = s_present_buf;
+            ui_overlay = 1;
         }
 #endif
-        if (hirate_enabled() && present_src == s_framebuf && !g_game_spec.video
+        if (hirate_enabled() && !ui_overlay && !g_game_spec.video
             && !(turbo || runtime_uncapped)
 #if GENESIS_HAS_RECOMP_NET
             && !genesis_netplay_active()
