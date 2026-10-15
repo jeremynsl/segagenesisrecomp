@@ -620,8 +620,8 @@ static void hirate_present(SDL_Renderer *renderer, const FramePacer *pacer)
     SDL_RenderCopy(renderer, tex, &src, NULL);
     if (pacer->active) {
         Uint64 mid = pacer->next - pacer->period / 2;
-        while (SDL_GetPerformanceCounter() < mid) {
-            Uint64 left_ms = (mid - SDL_GetPerformanceCounter()) * 1000 / SDL_GetPerformanceFrequency();
+        for (Uint64 now = SDL_GetPerformanceCounter(); now < mid; now = SDL_GetPerformanceCounter()) {
+            Uint64 left_ms = (mid - now) * 1000 / SDL_GetPerformanceFrequency();
             if (left_ms > 2) SDL_Delay((Uint32)(left_ms - 1));
         }
     }
@@ -2895,10 +2895,12 @@ int main(int argc, char *argv[])
         int hz = SDL_GetCurrentDisplayMode(SDL_GetWindowDisplayIndex(window), &dm) == 0
                  ? dm.refresh_rate : 0;
         if (hr && atoi(hr) > 0) {
-            /* Two vsynced presents per tick halve the game speed below 100 Hz;
-             * GENESIS_HIGH_REFRESH=2 skips the check. */
-            if (atoi(hr) < 2 && hz > 0 && hz < 100) {
-                fprintf(stderr, "[HIRATE] off: display refresh %d Hz is below 100 Hz\n", hz);
+            /* Two vsynced presents per tick need twice the tick rate, else the
+             * game slows. Displays report whole Hz (119 for 119.88), hence the
+             * 1% margin; GENESIS_HIGH_REFRESH=2 skips the check. */
+            if (atoi(hr) < 2 && hz > 0 && hz < 0.99 * 2.0 * target_fps) {
+                fprintf(stderr, "[HIRATE] off: display refresh %d Hz is below 2x %.2f fps\n",
+                        hz, target_fps);
             } else {
                 hirate_set_enabled(1);
                 fprintf(stderr, "[HIRATE] high-refresh presentation on (display %d Hz)\n", hz);
@@ -3671,7 +3673,8 @@ session_begin:;
             present_src = s_present_buf;
         }
 #endif
-        if (hirate_enabled() && present_src == s_framebuf && !(turbo || runtime_uncapped)
+        if (hirate_enabled() && present_src == s_framebuf && !g_game_spec.video
+            && !(turbo || runtime_uncapped)
 #if GENESIS_HAS_RECOMP_NET
             && !genesis_netplay_active()
 #endif

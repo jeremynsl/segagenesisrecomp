@@ -257,6 +257,7 @@ int machine_save_state(FILE *f)
 
 int machine_load_state(FILE *f)
 {
+    hirate_reset();
     if (fread(&g_machine, sizeof g_machine, 1, f) != 1) return 0;
     { uint64_t clk = 0;
       if (fread(&clk, sizeof clk, 1, f) != 1) return 0;
@@ -321,6 +322,7 @@ size_t machine_rb_save(void *dst, size_t cap)
 
 int machine_rb_load(const void *src, size_t len)
 {
+    hirate_reset();
     if (!src || len != machine_rb_save(NULL, 0)) return 0;
     const uint8_t *i = (const uint8_t *)src;
     GVDP_BusReadWord br = g_machine.vdp.bus_read;
