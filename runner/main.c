@@ -584,8 +584,32 @@ static void own_scanline_sink(void *u, int line, const uint32_t *argb, int width
 /* Present the frame halfway between the previous and the current tick, half a
  * period before the current tick's deadline. GENESIS_HIGH_REFRESH_SELFTEST
  * also checks that alpha 1 reproduces the real frame. */
+static int s_hirate_force;
+static double s_hirate_tick_fps = 60000.0 / 1001.0;
+
+/* Two vsynced presents per tick need twice the tick rate, else the game
+ * slows. Displays report whole Hz (119 for 119.88), hence the 1% margin;
+ * GENESIS_HIGH_REFRESH=2 skips the check. */
+static int hirate_display_fast_enough(SDL_Window *window, int *hz_out)
+{
+    SDL_DisplayMode dm;
+    int hz = window && SDL_GetCurrentDisplayMode(SDL_GetWindowDisplayIndex(window), &dm) == 0
+             ? dm.refresh_rate : 0;
+    *hz_out = hz;
+    return s_hirate_force || hz <= 0 || hz >= 0.99 * 2.0 * s_hirate_tick_fps;
+}
+
 static void hirate_present(SDL_Renderer *renderer, const FramePacer *pacer)
 {
+    static int display_ok = 1;
+    static unsigned calls;
+    if (calls++ % 60 == 0) {
+        int hz, ok = hirate_display_fast_enough(SDL_RenderGetWindow(renderer), &hz);
+        if (ok != display_ok)
+            fprintf(stderr, "[HIRATE] %s: display refresh %d Hz\n", ok ? "resumed" : "paused", hz);
+        display_ok = ok;
+    }
+    if (!display_ok) return;
     enum { STRIDE = GVDP_MAX_WIDTH * 2 };
     static uint32_t *buf;
     static SDL_Texture *tex;
@@ -2891,20 +2915,14 @@ int main(int argc, char *argv[])
     fprintf(stderr, "[pacer] target frame rate: %.4f fps\n", target_fps);
     {
         const char *hr = getenv("GENESIS_HIGH_REFRESH");
-        SDL_DisplayMode dm;
-        int hz = SDL_GetCurrentDisplayMode(SDL_GetWindowDisplayIndex(window), &dm) == 0
-                 ? dm.refresh_rate : 0;
         if (hr && atoi(hr) > 0) {
-            /* Two vsynced presents per tick need twice the tick rate, else the
-             * game slows. Displays report whole Hz (119 for 119.88), hence the
-             * 1% margin; GENESIS_HIGH_REFRESH=2 skips the check. */
-            if (atoi(hr) < 2 && hz > 0 && hz < 0.99 * 2.0 * target_fps) {
-                fprintf(stderr, "[HIRATE] off: display refresh %d Hz is below 2x %.2f fps\n",
-                        hz, target_fps);
-            } else {
-                hirate_set_enabled(1);
-                fprintf(stderr, "[HIRATE] high-refresh presentation on (display %d Hz)\n", hz);
-            }
+            int hz;
+            s_hirate_force = atoi(hr) >= 2;
+            s_hirate_tick_fps = target_fps;
+            hirate_set_enabled(1);
+            int fast = hirate_display_fast_enough(window, &hz);
+            fprintf(stderr, "[HIRATE] high-refresh presentation %s (display %d Hz)\n",
+                    fast ? "on" : "paused", hz);
         }
     }
     int debug_port = debug_port_cli ? debug_port_cli :
