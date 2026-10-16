@@ -24,6 +24,8 @@ typedef struct AppConfig {
     int linear_filter;      /* 0 nearest, 1 bilinear */
     int widescreen;         /* 0 = 4:3, 1 = 16:9 (only if the game is ws_capable) */
     int widescreen_cells;   /* extra 8px cells per side in widescreen */
+    int screen_model;       /* ScreenKind: 0 raw .. 4 linear (video/color_lut.h) */
+    int high_refresh;       /* 1 = 120 Hz interpolated presentation */
     /* Opt-in custom scene renderer, independent of the legacy VDP view. */
     int custom_widescreen;
     int custom_aspect;      /* 0 adaptive, 1 16:9, 2 21:9, 3 32:9 */
