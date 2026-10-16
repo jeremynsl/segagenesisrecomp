@@ -1297,10 +1297,17 @@ static void interp_account_cycles(const M68KInstr *ins) {
  * ========================================================================= */
 
 /* Execute one instruction at g_cpu.PC; advance g_cpu.PC. */
-M68kiStatus m68k_interp_step(void) {
+M68kiStatus m68k_interp_step(void) { return m68k_interp_step_depth(NULL); }
+
+M68kiStatus m68k_interp_step_depth(int *depth_delta) {
+    if (depth_delta) *depth_delta = 0;
     uint32_t pc = g_cpu.PC & 0xFFFFFFu;
     if (!pc_fetchable(pc)) { g_m68ki_bad_pc = pc; return M68KI_HALT_BADADDR; }
-    if (interp_game_hook(pc)) { g_cpu.PC = pop32() & 0xFFFFFFu; return M68KI_OK; }
+    if (interp_game_hook(pc)) {
+        g_cpu.PC = pop32() & 0xFFFFFFu;
+        if (depth_delta) *depth_delta = -1;
+        return M68KI_OK;
+    }
 
     M68KInstr ins;
     if (!m68k_decode(busview(), pc, &ins)) {
@@ -1320,6 +1327,12 @@ M68kiStatus m68k_interp_step(void) {
      * servicing so a floor run keeps the 68K clock advancing and lets the VBla
      * handler fire / the game fiber yield between interpreted instructions,
      * exactly as it would between statically-recompiled ones. */
+    if (depth_delta) {
+        if (ins.mnemonic == MN_JSR || ins.mnemonic == MN_BSR)
+            *depth_delta = 1;
+        else if (ins.mnemonic == MN_RTS || ins.mnemonic == MN_RTR)
+            *depth_delta = -1;
+    }
     interp_account_cycles(&ins);
     return M68KI_OK;
 }

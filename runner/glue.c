@@ -534,16 +534,35 @@ static uint32_t interp_waitvbl_pc(void) {
     return v;
 }
 
+/* Signed difference a - b of two 24-bit bus addresses. */
+static int32_t a7_diff24(uint32_t a, uint32_t b) {
+    return (int32_t)(((a - b) & 0xFFFFFFu) << 8) >> 8;
+}
+
 /* Main-loop driver: interpret from the reset entry forever, yielding to the
  * scheduler when the per-scanline cycle budget is spent — the interp analog of
  * the recompiled code's check_cycle_budget() bus-macro yield. The interpreted
  * V-int/H-int handlers are delivered by glue_own_interrupt exactly as for the
  * recomp (only the handler BODY differs). Halts LOUDLY on an unimplemented
- * instruction (never silently mis-executes) and parks. */
-static void interp_drive_mainloop(uint32_t entry_pc) {
+ * instruction (never silently mis-executes) and parks.
+ *
+ * resumed != 0 mirrors the native resume path: entry_pc is the function that
+ * recomp_call_addr runs. A return whose PC slot is at the entry A7 (the slot
+ * recomp_call_addr never pushed) ends it, and the loop continues at the game's
+ * dispatch_main_loop_pc.
+ * After an RTS, A7 goes back to its value before the RTS: recomp_call_addr
+ * pushed no slot and a native RTS pops nothing. A native RTR pops its frame,
+ * so the interpreted pop stays. A return from the dispatcher (or from the
+ * resume function when there is no dispatcher) parks the fiber. A
+ * pushed-target RTS (pea; rts) reads its slot below the entry A7, so it is not
+ * a return here. */
+static void interp_drive_mainloop(uint32_t entry_pc, int resumed) {
     g_cpu.PC = entry_pc & 0xFFFFFFu;
     uint32_t wpc = interp_waitvbl_pc();
+    uint32_t base_a7 = g_cpu.A[7];
     for (;;) {
+        int delta = 0;
+        uint32_t a7_before = g_cpu.A[7];
         /* Converge with the recompiled WaitForVBla stub: set SR + yield the frame
          * + RTS, exactly as func_XXXX() does, instead of interpreting the spin. */
         if (wpc && (g_cpu.PC & 0xFFFFFFu) == wpc) {
@@ -551,13 +570,33 @@ static void interp_drive_mainloop(uint32_t entry_pc) {
             glue_yield_for_vblank();
             g_cpu.PC = m68k_read32(g_cpu.A[7]) & 0xFFFFFFu;   /* RTS: pop return */
             g_cpu.A[7] += 4;
-            continue;
+            delta = -1;
+        } else {
+            M68kiStatus st = m68k_interp_step_depth(&delta);
+            if (st != M68KI_OK) {
+                fprintf(stderr, "[FORCE_INTERP] HALT st=%d at PC=$%06X op=$%04X — parking "
+                        "(unimplemented instruction: complete the interpreter)\n",
+                        (int)st, g_m68ki_bad_pc, g_m68ki_bad_op);
+                for (;;) yield_to_main(GLUE_YIELD_HALT);
+            }
         }
-        M68kiStatus st = m68k_interp_step();
-        if (st != M68KI_OK) {
-            fprintf(stderr, "[FORCE_INTERP] HALT st=%d at PC=$%06X op=$%04X — parking "
-                    "(unimplemented instruction: complete the interpreter)\n",
-                    (int)st, g_m68ki_bad_pc, g_m68ki_bad_op);
+        int32_t popped = a7_diff24(g_cpu.A[7], a7_before);
+        if (resumed && delta < 0 && (popped == 4 || popped == 6) &&
+            a7_diff24(g_cpu.A[7], base_a7) == 4) {
+            if (popped == 4)
+                g_cpu.A[7] = a7_before;
+            uint32_t dispatch_pc = g_game_spec.dispatch_main_loop_pc & 0xFFFFFFu;
+            if (resumed == 1 && dispatch_pc) {
+                fprintf(stderr, "[FORCE_INTERP] %s resume loop returned at $%06X; "
+                        "continuing at dispatcher $%06X\n",
+                        g_game_spec.short_name, entry_pc & 0xFFFFFFu, dispatch_pc);
+                g_cpu.PC = dispatch_pc;
+                base_a7 = g_cpu.A[7];
+                resumed = 2;
+                continue;
+            }
+            fprintf(stderr, "[FORCE_INTERP] %s resume/dispatch returned unexpectedly!\n",
+                    g_game_spec.short_name);
             for (;;) yield_to_main(GLUE_YIELD_HALT);
         }
         /* NOTE: no per-instruction check_cycle_budget() here. The native recomp
@@ -581,6 +620,10 @@ static void game_fiber_func(void *param)
         uint32_t resume_pc = s_game_fiber_resume_pc & 0xFFFFFFu;
         s_game_fiber_resume_pc = 0;
         g_cpu.A[7] = g_game_layout.initial_ssp;
+        if (genesis_force_interp()) {
+            fprintf(stderr, "[FORCE_INTERP] driving from resume PC $%06X\n", resume_pc);
+            interp_drive_mainloop(resume_pc, 1);   /* never returns */
+        }
         recomp_call_addr(resume_pc);
         if (g_game_spec.dispatch_main_loop_pc) {
             uint32_t dispatch_pc = g_game_spec.dispatch_main_loop_pc & 0xFFFFFFu;
@@ -602,7 +645,7 @@ static void game_fiber_func(void *param)
     if (genesis_force_interp()) {
         uint32_t entry = m68k_read32(4) & 0xFFFFFFu;   /* 68K reset vector */
         fprintf(stderr, "[FORCE_INTERP] driving from reset PC $%06X\n", entry);
-        interp_drive_mainloop(entry);   /* never returns */
+        interp_drive_mainloop(entry, 0);   /* never returns */
     }
 
     g_game_spec.call_entry_point();

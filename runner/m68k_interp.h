@@ -76,6 +76,11 @@ M68kiStatus m68k_interp_run_ram_handler(uint32_t entry_pc, uint32_t *out_exit_pc
  */
 M68kiStatus m68k_interp_step(void);
 
+/* m68k_interp_step that also reports the step's call-depth change in
+ * *depth_delta: +1 for JSR/BSR, -1 for RTS/RTR or an instruction hook's
+ * implicit RTS, 0 otherwise. depth_delta may be NULL. */
+M68kiStatus m68k_interp_step_depth(int *depth_delta);
+
 /* Interpret an interrupt HANDLER BODY from its autovector entry, stopping at the
  * handler's own depth-0 RTE (peeked, not executed). In FORCE_INTERP mode this
  * is the interpreted twin of g_game_spec.call_vblank()/call_hblank(). */
