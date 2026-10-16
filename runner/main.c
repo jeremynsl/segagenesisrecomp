@@ -323,6 +323,9 @@ static int runtime_ui_set(void *p, const RecompRuntimeUiItem *i, int v) {
         if (g_game_spec.video)
             g_game_spec.video->configure(v == RECOMP_RUNTIME_UI_VIEW_ADAPTIVE ? "fit" : "off");
         if (v == RECOMP_RUNTIME_UI_VIEW_FIXED_16_9) s_ws_user_cells = 8;
+        /* Persisted as the launcher's widescreen fields; widescreen_setup reads them back. */
+        g_app_config.widescreen = v == RECOMP_RUNTIME_UI_VIEW_ADAPTIVE ? 2 : s_ws_user_on;
+        g_app_config.widescreen_cells = s_ws_user_cells;
     } else if (!strcmp(i->key, RECOMP_RUNTIME_UI_KEY_LINEAR_FILTER)) {
         SDL_ScaleMode mode = v ? SDL_ScaleModeLinear : SDL_ScaleModeNearest;
         g_app_config.linear_filter = v;
@@ -340,9 +343,14 @@ static void runtime_ui_save(void *p) {
 static int runtime_ui_action(void *p, const RecompRuntimeUiItem *i) {
     RuntimeUiContext *c = (RuntimeUiContext *)p;
     if (!strcmp(i->key, RECOMP_RUNTIME_UI_KEY_RESUME)) { recomp_runtime_ui_close(c->ui); return 1; }
-    if (g_game_spec.state_size && (!strcmp(i->key,"states.save") || !strcmp(i->key,"states.load"))) {
+    if (!strcmp(i->key,"states.save") || !strcmp(i->key,"states.load")) {
+#if GENESIS_HAS_RECOMP_NET
+        if (genesis_netplay_active()) return 0;   /* as F1-F9: no save/load online */
+#endif
         char path[32]; snprintf(path,sizeof path,"native_save_%d.bin",s_quickstate_slot);
-        int ok=!strcmp(i->key,"states.save")?runner_save_state_file(path):runner_load_state_file(path);
+        int is_save=!strcmp(i->key,"states.save");
+        int ok=is_save?runner_save_state_file(path):runner_load_state_file(path);
+        if (ok && is_save) genesis_local_states_slot_saved(s_quickstate_slot);
         if (ok) recomp_runtime_ui_close(c->ui);
         return ok;
     }
@@ -2719,6 +2727,7 @@ int main(int argc, char *argv[])
         s_runtime_ui.window = window; s_runtime_ui.renderer = renderer; s_runtime_ui.texture = texture;
         s_runtime_ui.view_mode = s_ws_user_on ? RECOMP_RUNTIME_UI_VIEW_FIXED_16_9 : RECOMP_RUNTIME_UI_VIEW_NATIVE;
         if (g_game_spec.video && g_game_spec.video->enabled()) s_runtime_ui.view_mode = RECOMP_RUNTIME_UI_VIEW_ADAPTIVE;
+        if (!g_game_spec.video && s_ws_user_on && g_app_config.widescreen == 2) s_runtime_ui.view_mode = RECOMP_RUNTIME_UI_VIEW_ADAPTIVE;
         cfg.menu.title = g_game_spec.display_name; cfg.menu.subtitle = "Genesis runtime settings"; cfg.menu.theme = "genesis";
         cfg.menu.callbacks.context = &s_runtime_ui; cfg.menu.callbacks.get_value = runtime_ui_get;
         cfg.menu.callbacks.set_value = runtime_ui_set; cfg.menu.callbacks.run_action = runtime_ui_action;
