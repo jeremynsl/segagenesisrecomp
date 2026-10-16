@@ -23,7 +23,7 @@ typedef struct AppConfig {
     int fullscreen;         /* 0 windowed, 1 borderless-desktop */
     int linear_filter;      /* 0 nearest, 1 bilinear */
     int integer_scale;      /* 1 = whole-number output scale, square pixels */
-    int widescreen;         /* 0 = 4:3, 1 = 16:9 (only if the game is ws_capable) */
+    int widescreen;         /* 0 = 4:3, 1 = 16:9, 2 = runtime-menu Adaptive (only if the game is ws_capable) */
     int widescreen_cells;   /* extra 8px cells per side in widescreen */
     /* Opt-in custom scene renderer, independent of the legacy VDP view. */
     int custom_widescreen;
