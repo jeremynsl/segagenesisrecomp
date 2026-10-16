@@ -19,6 +19,8 @@ void app_config_defaults(void)
     g_app_config.integer_scale    = 1;
     g_app_config.widescreen       = 0;
     g_app_config.widescreen_cells = 8;
+    g_app_config.screen_model     = 0;
+    g_app_config.high_refresh     = 0;
     g_app_config.custom_widescreen = 0;
     g_app_config.custom_aspect = 0;
     g_app_config.volume           = 100;
@@ -121,6 +123,8 @@ int app_config_load(const char *path)
             else if (!strcmp(key, "integer_scale"))    g_app_config.integer_scale    = atoi(val);
             else if (!strcmp(key, "widescreen"))       g_app_config.widescreen       = atoi(val);
             else if (!strcmp(key, "widescreen_cells")) g_app_config.widescreen_cells = atoi(val);
+            else if (!strcmp(key, "screen_model"))     g_app_config.screen_model     = atoi(val);
+            else if (!strcmp(key, "high_refresh"))     g_app_config.high_refresh     = atoi(val) != 0;
         } else if (section == 1) {
             if (!strcmp(key, "volume")) g_app_config.volume = atoi(val);
         } else if (section == 2) {
@@ -185,7 +189,9 @@ int app_config_save(const char *path)
     fprintf(f, "linear_filter = %d\n",    g_app_config.linear_filter);
     fprintf(f, "integer_scale = %d\n",    g_app_config.integer_scale);
     fprintf(f, "widescreen = %d\n",       g_app_config.widescreen);
-    fprintf(f, "widescreen_cells = %d\n\n", g_app_config.widescreen_cells);
+    fprintf(f, "widescreen_cells = %d\n", g_app_config.widescreen_cells);
+    fprintf(f, "screen_model = %d\n",     g_app_config.screen_model);
+    fprintf(f, "high_refresh = %d\n\n",  g_app_config.high_refresh);
     fprintf(f, "[audio]\n");
     fprintf(f, "volume = %d\n\n",         g_app_config.volume);
     fprintf(f, "[launcher]\n");

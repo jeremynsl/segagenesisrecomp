@@ -233,20 +233,29 @@ static uint32_t *s_present_buf = s_present_storage;
 static ColorLut s_color_lut;
 static int      s_color_lut_on = 0;   /* 0 = raw passthrough (default) */
 
+static ScreenKind s_screen_kind = SCREEN_RAW;
+
+static void color_lut_select(ScreenKind k)
+{
+    color_lut_build(&s_color_lut, k, -1.0);
+    s_color_lut_on = k != SCREEN_RAW;
+    s_screen_kind = k;
+}
+
+/* GENESIS_SCREEN wins over settings.ini's screen_model. */
 static void color_lut_setup(void)
 {
     ScreenKind k = SCREEN_RAW;
     const char *env = getenv("GENESIS_SCREEN");
-    if (env && env[0] && screen_kind_from_name(env, &k) && k != SCREEN_RAW) {
-        color_lut_build(&s_color_lut, k, -1.0);
-        s_color_lut_on = 1;
-        fprintf(stderr, "[VIDEO-SCREEN] present-time color model '%s' ENABLED "
-                "(present-only; raw VDP output unchanged + still the oracle)\n",
-                env);
-    } else {
-        color_lut_build(&s_color_lut, SCREEN_RAW, -1.0);  /* passthrough */
-        s_color_lut_on = 0;
+    if (env && env[0]) {
+        if (!screen_kind_from_name(env, &k)) k = SCREEN_RAW;
+    } else if (g_app_config.screen_model > SCREEN_RAW && g_app_config.screen_model <= SCREEN_LINEAR) {
+        k = (ScreenKind)g_app_config.screen_model;
     }
+    color_lut_select(k);
+    if (s_color_lut_on)
+        fprintf(stderr, "[VIDEO-SCREEN] present-time color model %d ENABLED "
+                "(present-only; raw VDP output unchanged + still the oracle)\n", (int)k);
 }
 
 static uint32_t color_lut_map_present(uint32_t argb)
@@ -284,6 +293,11 @@ static const RecompRuntimeUiItem s_video_mod_items[]={
     {"mods.widescreen.enabled","Mods","Widescreen","Opt-in custom scene renderer with expanded objects and screen-anchored HUD.",RECOMP_RUNTIME_UI_BOOL,0,1,1},
     {"mods.widescreen.aspect","Mods","Aspect ratio","Adaptive follows the whole window without a 32:9 cap.",RECOMP_RUNTIME_UI_CHOICE,0,3,1,s_mod_aspects,4}
 };
+static const char *const s_screen_models[]={"Raw","CRT","Trinitron","Composite","Linear"};
+static const RecompRuntimeUiItem s_screen_items[]={
+    {"video.screen_model","Graphics","Screen model","Simulated display color: raw DAC output, or a CRT, Trinitron, composite or linear-light model.",RECOMP_RUNTIME_UI_CHOICE,0,4,1,s_screen_models,5},
+    {"video.high_refresh","Graphics","120 Hz","Draw a half-step frame between ticks. Pauses on displays under twice the game rate.",RECOMP_RUNTIME_UI_BOOL,0,1,1}
+};
 static const RecompRuntimeUiItem s_quickstate_items[]={
     {"states.slot","Save states","Slot","Separate from campaign files. Shift+F1..F9 saves; F1..F9 loads.",RECOMP_RUNTIME_UI_INT,1,9,1},
     {"states.save","Save states","Save state","Capture the next completed gameplay tick in this slot (overwrites its previous quickstate).",RECOMP_RUNTIME_UI_ACTION},
@@ -299,6 +313,8 @@ static int runtime_ui_get(void *p, const RecompRuntimeUiItem *i, int *out) {
     else if (!strcmp(i->key,"mods.widescreen.enabled")) *out = g_game_spec.video && g_game_spec.video->enabled();
     else if (!strcmp(i->key,"mods.widescreen.aspect")) *out = g_app_config.custom_aspect;
     else if (!strcmp(i->key,"states.slot")) *out = s_quickstate_slot;
+    else if (!strcmp(i->key,"video.screen_model")) *out = (int)s_screen_kind;
+    else if (!strcmp(i->key,"video.high_refresh")) *out = hirate_enabled();
     else return 0; return 1;
 }
 static int runtime_ui_set(void *p, const RecompRuntimeUiItem *i, int v) {
@@ -339,6 +355,11 @@ static int runtime_ui_set(void *p, const RecompRuntimeUiItem *i, int v) {
             s_frame_texture_filtered = mode != SDL_ScaleModeNearest;
     } else if (!strcmp(i->key, RECOMP_RUNTIME_UI_KEY_VOLUME)) {
         g_app_config.volume = v; audio_set_master_volume(v);
+    } else if (!strcmp(i->key,"video.screen_model")) {
+        if (v < SCREEN_RAW || v > SCREEN_LINEAR) return 0;
+        color_lut_select((ScreenKind)v); g_app_config.screen_model = v;
+    } else if (!strcmp(i->key,"video.high_refresh")) {
+        hirate_set_enabled(v); g_app_config.high_refresh = v != 0;
     } else return 0; return 1;
 }
 static void runtime_ui_save(void *p) {
@@ -2881,20 +2902,19 @@ int main(int argc, char *argv[])
             RECOMP_RUNTIME_UI_STANDARD_VOLUME | RECOMP_RUNTIME_UI_STANDARD_RESUME;
         cfg.view_modes = RECOMP_RUNTIME_UI_VIEW_MODE_NATIVE | RECOMP_RUNTIME_UI_VIEW_MODE_FIXED_16_9 |
             RECOMP_RUNTIME_UI_VIEW_MODE_ADAPTIVE;
+        static RecompRuntimeUiItem items[7]; unsigned count=0;
+        /* 120 Hz never presents over the custom scene renderer. */
+        items[count++]=s_screen_items[0];
+        if (!g_game_spec.video) items[count++]=s_screen_items[1];
         if(g_game_spec.video) {
             cfg.features &= ~RECOMP_RUNTIME_UI_STANDARD_VIEW_MODE;
-            cfg.extra_items=s_video_mod_items;
-            cfg.extra_item_count=sizeof s_video_mod_items/sizeof s_video_mod_items[0];
+            memcpy(items+count,s_video_mod_items,sizeof s_video_mod_items); count+=2;
         }
         if (!g_game_spec.state_unavailable_reason ||
             !g_game_spec.state_unavailable_reason()) {
-            static RecompRuntimeUiItem items[5]; unsigned count=0;
-            if (g_game_spec.video) {
-                memcpy(items,s_video_mod_items,sizeof s_video_mod_items); count=2;
-            }
-            memcpy(items+count,s_quickstate_items,sizeof s_quickstate_items);
-            cfg.extra_items=items; cfg.extra_item_count=count+3;
+            memcpy(items+count,s_quickstate_items,sizeof s_quickstate_items); count+=3;
         }
+        cfg.extra_items=items; cfg.extra_item_count=count;
         s_runtime_ui.ui = recomp_runtime_ui_create_standard(&cfg);
     }
 #endif
@@ -2995,11 +3015,12 @@ int main(int argc, char *argv[])
                                                        (60000.0 / 1001.0);  /* NTSC */
     fprintf(stderr, "[pacer] target frame rate: %.4f fps\n", target_fps);
     {
+        /* GENESIS_HIGH_REFRESH wins over settings.ini's high_refresh. */
         const char *hr = getenv("GENESIS_HIGH_REFRESH");
-        if (hr && atoi(hr) > 0) {
+        s_hirate_tick_fps = target_fps;
+        if (hr ? atoi(hr) > 0 : g_app_config.high_refresh) {
             int hz;
-            s_hirate_force = atoi(hr) >= 2;
-            s_hirate_tick_fps = target_fps;
+            s_hirate_force = hr && atoi(hr) >= 2;
             hirate_set_enabled(1);
             int fast = hirate_display_fast_enough(window, &hz);
             fprintf(stderr, "[HIRATE] high-refresh presentation %s (display %d Hz)\n",
