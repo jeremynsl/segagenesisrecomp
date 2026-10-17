@@ -279,7 +279,7 @@ static const RecompRuntimeUiItem s_video_mod_items[]={
     {"mods.widescreen.aspect","Mods","Aspect ratio","Adaptive follows the whole window without a 32:9 cap.",RECOMP_RUNTIME_UI_CHOICE,0,3,1,s_mod_aspects,4}
 };
 static const RecompRuntimeUiItem s_quickstate_items[]={
-    {"states.slot","Save states","Slot","Separate from campaign files. Shift+F1..F9 saves; F1..F9 loads.",RECOMP_RUNTIME_UI_INT,1,9,1},
+    {"states.slot","Save states","Slot","Separate from campaign files. Shift+1..9 saves; 1..9 loads.",RECOMP_RUNTIME_UI_INT,1,9,1},
     {"states.save","Save states","Save state","Capture the next completed gameplay tick in this slot (overwrites its previous quickstate).",RECOMP_RUNTIME_UI_ACTION},
     {"states.load","Save states","Load state","Restore this build's quickstate. Character/mod/video setup must match. Unsaved gameplay is replaced.",RECOMP_RUNTIME_UI_ACTION}
 };
@@ -3138,15 +3138,17 @@ session_begin:;
                                           : SDL_WINDOW_FULLSCREEN_DESKTOP;
                         SDL_SetWindowFullscreen(window, is_fs ? 0 : want);
                         update_render_logical_size(renderer);
-                        continue;   /* don't also treat Enter/F-key as a save slot */
+                        continue;
                     }
                 }
 
-                /* Save states: Shift+F1-F9 = save, F1-F9 = load */
+                /* Save states: Shift+1-9 = save, 1-9 = load (top-row keys) */
                 {
                     int slot = -1;
-                    if (ev.key.keysym.sym >= SDLK_F1 && ev.key.keysym.sym <= SDLK_F9)
-                        slot = ev.key.keysym.sym - SDLK_F1 + 1;
+                    SDL_Scancode sc = ev.key.keysym.scancode;
+                    if (!ev.key.repeat && !(ev.key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_GUI)) &&
+                        sc >= SDL_SCANCODE_1 && sc <= SDL_SCANCODE_9)
+                        slot = sc - SDL_SCANCODE_1 + 1;
                     if (slot >= 1 && slot <= 9) {
                         int is_save = (ev.key.keysym.mod & KMOD_SHIFT) != 0;
                         char slot_name[48];
