@@ -21,6 +21,12 @@
 #include <dirent.h>   /* ROM scan of the app files dir (no file dialogs) */
 #include <strings.h>  /* strcasecmp */
 #endif
+#ifdef __APPLE__
+#include <errno.h>
+#include <limits.h>        /* PATH_MAX */
+#include <mach-o/dyld.h>   /* _NSGetExecutablePath */
+#include <sys/stat.h>      /* mkdir */
+#endif
 #endif
 
 #include <SDL2/SDL.h>
@@ -42,6 +48,8 @@
  * ========================================================================= */
 
 static char s_exe_dir[512] = "";
+/* Read-only bundled resources (assets/); empty means s_exe_dir. */
+static char s_res_dir[512] = "";
 
 static double benchmark_process_cpu_seconds(void)
 {
@@ -74,6 +82,46 @@ static uint64_t benchmark_process_cpu_cycles(void)
 #endif
 }
 
+#ifdef __APPLE__
+/* Inside a .app the executable's directory is part of the signed bundle, which
+ * may also run from a read-only App Translocation mount. Anchor config/saves
+ * in ~/Library/Application Support/<exe name>/ and read assets/ from
+ * Contents/Resources. A Finder launch starts in "/", so chdir to the data dir
+ * then for cwd-relative outputs; a shell launch keeps its cwd so relative
+ * command-line paths still resolve. Inside a bundle s_res_dir is always set.
+ * Returns 1 when it set the data dir; 0 (s_exe_dir unchanged) outside a
+ * bundle, or when the data dir path does not fit or cannot be created. */
+static int init_apple_bundle_dirs(void)
+{
+    char exe[PATH_MAX], real[PATH_MAX], dir[512], cwd[PATH_MAX];
+    uint32_t n = sizeof exe;
+    if (_NSGetExecutablePath(exe, &n) != 0 || !realpath(exe, real)) return 0;
+    char *macos = strstr(real, ".app/Contents/MacOS/");
+    const char *home = getenv("HOME");
+    if (!macos || !home || !home[0]) return 0;
+    const char *name = strrchr(real, '/') + 1;
+    int len = snprintf(s_res_dir, sizeof(s_res_dir), "%.*s.app/Contents/Resources/",
+                       (int)(macos - real), real);
+    if (len < 0 || (size_t)len >= sizeof(s_res_dir)) s_res_dir[0] = '\0';
+    len = snprintf(dir, sizeof dir, "%s/Library/Application Support/%s/", home, name);
+    if (len < 0 || (size_t)len >= sizeof dir) return 0;
+    for (char *p = dir + strlen(home) + 1; *p; p++) {   /* mkdir -p */
+        if (*p != '/') continue;
+        *p = '\0';
+        int bad = mkdir(dir, 0755) != 0 && errno != EEXIST;
+        *p = '/';
+        if (bad) {
+            fprintf(stderr, "mkdir(%s) failed; data stays next to the executable\n", dir);
+            return 0;
+        }
+    }
+    snprintf(s_exe_dir, sizeof(s_exe_dir), "%s", dir);
+    if (getcwd(cwd, sizeof cwd) && strcmp(cwd, "/") == 0 && chdir(s_exe_dir) != 0)
+        fprintf(stderr, "chdir(%s) failed\n", s_exe_dir);
+    return 1;
+}
+#endif
+
 static void init_exe_dir(const char *argv0)
 {
     /* Try platform API first */
@@ -100,6 +148,9 @@ static void init_exe_dir(const char *argv0)
             return;
         }
     }
+#endif
+#ifdef __APPLE__
+    if (init_apple_bundle_dirs()) return;
 #endif
     {
         const char *appimg = getenv("APPIMAGE");
@@ -2076,7 +2127,7 @@ static int run_recomp_launcher(const char *ltitle, const char *initial_rom, char
         }
 
         char assets_dir[600];
-        snprintf(assets_dir, sizeof assets_dir, "%sassets", s_exe_dir);
+        snprintf(assets_dir, sizeof assets_dir, "%sassets", s_res_dir[0] ? s_res_dir : s_exe_dir);
         #if GENESIS_HAS_RECOMP_NET
         /* Soft return: reopen on the waiting room of the match that just ended
          * (recomp-ui HOST_NETPLAY.md: prepare_rematch + resume_netplay_room). */
