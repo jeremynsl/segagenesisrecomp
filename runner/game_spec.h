@@ -48,6 +48,10 @@ typedef struct {
 
 typedef struct GameSpec {
     const GameVideo *video;          /* NULL = native VDP presentation only */
+    /* Custom-video mode for a fresh install (no saved [mods.widescreen]
+     * enabled key): NULL or "off" keeps the renderer opt-in; "fit", "16:9",
+     * "21:9" or "32:9" enables it. A saved choice, including off, still wins. */
+    const char *video_default;
     unsigned logical_players;       /* 0 = native two ports; host input/UI capacity */
     void (*load_settings)(const char *settings_path);
     /* Game-owned additive features may compose with the common video provider. */
@@ -67,7 +71,9 @@ typedef struct GameSpec {
     /* At the game's real WaitForVint: is its caller a resumable loop? */
     int (*state_at_boundary)(void);
     /* ---- Identity ---- */
-    const char *display_name;        /* "Sonic the Hedgehog" — window title */
+    /* Clean game name for gameplay and launcher captions, e.g. "Sonic the
+     * Hedgehog". Build/backend/debug identity belongs in logs and About. */
+    const char *display_name;
     const char *short_name;          /* "Sonic1" — shows up in info / ping */
     /* Box-art file staged next to the exe under assets/img/, e.g.
      * "boxart-sonic3.tga". NULL => the shared "boxart.tga" (single-boxart
@@ -120,6 +126,15 @@ typedef struct GameSpec {
      * cart). */
     uint32_t    sram_start;
     uint32_t    sram_end;
+    /* Optional basename (no directory) for an incompatible local campaign.
+     * Evaluated after launcher configuration; NULL preserves the ROM basename.
+     * A game using this seam owns its SRAM import/export UI. */
+    const char *(*sram_filename)(void);
+    /* Optional notifications; data is read-only and remains runner-owned.
+     * Load reports the resolved path even when no valid-sized file exists.
+     * Flushed fires only after the complete atomic replacement succeeds. */
+    void (*sram_loaded)(const char *path, const uint8_t *data, size_t size, int loaded);
+    void (*sram_flushed)(const char *path, const uint8_t *data, size_t size);
 
     /* ---- Entry points (recompiled C) ---- */
     /* Called once on the game thread. Must contain the game's main

@@ -14,6 +14,7 @@
  */
 #include "mixer.h"
 #include "event_queue.h"
+#include "event_order.h"
 #include "ym2612.h"
 #include "sn76489.h"
 #include "fm_shadow.h"   /* verified-enhancement FM shadow (default OFF) */
@@ -36,17 +37,10 @@ void audio_mixer_init(void)
  * V-int handler as one lump out of raster order. So the queue's PUSH order is
  * not stamp order. Applying in push order with the monotonic clamp below
  * would collapse whichever source arrives late — the write-collapse bug.
- * Sorting by (stamp, push index) reconstructs the modeled timeline. The
+ * Stable timestamp ordering reconstructs the modeled timeline. The
  * oracle build's stamps come from one clock already in order, so the sort is
- * a no-op there. */
-typedef struct { AudioEvent e; uint32_t idx; } SortedEvt;
-static int evt_cmp(const void *pa, const void *pb)
-{
-    const SortedEvt *a = (const SortedEvt *)pa, *b = (const SortedEvt *)pb;
-    if (a->e.cycle_stamp != b->e.cycle_stamp)
-        return a->e.cycle_stamp < b->e.cycle_stamp ? -1 : 1;
-    return a->idx < b->idx ? -1 : (a->idx > b->idx ? 1 : 0);   /* stable */
-}
+ * a no-op there. Natural runs also preserve sorted deferred bursts instead
+ * of repeatedly comparison-sorting their complete remaining payload. */
 
 /* Boop-bisection toggles (env, read once). Each DISABLES one mixer mechanism
  * that CLAIMS to fix the boop, so we can A/B which one actually causes the jump
@@ -99,12 +93,13 @@ void audio_mixer_drain(uint32_t frame_end_cycle,
 
     /* Collect the frame's events, then sort by stamp (stable). */
     enum { DRAIN_CAP = 262144 };   /* matches event_queue.c QUEUE_CAP */
-    static SortedEvt evs[DRAIN_CAP];
+    static AudioOrderedEvent evs[DRAIN_CAP];
+    static union {AudioOrderedEvent ordered[DRAIN_CAP];AudioEvent deferred[DRAIN_CAP];} scratch;
     size_t n = 0;
     {
         AudioEvent pe;
         while (n < DRAIN_CAP && audio_event_pop(&pe)) {
-            evs[n].e = pe; evs[n].idx = (uint32_t)n; n++;
+            evs[n].e=pe;evs[n].idx=(uint32_t)n;++n;
         }
     }
 
@@ -114,19 +109,7 @@ void audio_mixer_drain(uint32_t frame_end_cycle,
      * event can sort between an address write and the data write that
      * completes it, so the synth's address latch can never be clobbered
      * mid-pair by cross-axis interleaving. */
-    if (!s_no_pairguard)
-    for (size_t i = 0; i < n; i++) {
-        uint8_t p = evs[i].e.port;
-        if (p == AUDIO_PORT_FM1_ADDR || p == AUDIO_PORT_FM2_ADDR) {
-            for (size_t j = i + 1; j < n; j++) {
-                uint8_t q = evs[j].e.port;
-                if (q == p + 1) { evs[i].e.cycle_stamp = evs[j].e.cycle_stamp; break; }
-                if (q == p)     break;   /* re-latched address; keep own stamp */
-            }
-        }
-    }
-
-    qsort(evs, n, sizeof(SortedEvt), evt_cmp);
+    audio_event_order(evs,scratch.ordered,n,!s_no_pairguard);
 
     /* Multi-frame spreading: a handler that runs long (the Sega-scream PCM
      * V-int feeds ~118k DAC writes whose stamps span ~129 frames of machine
@@ -149,7 +132,7 @@ void audio_mixer_drain(uint32_t frame_end_cycle,
     }
     }
     if (n_apply < n) {
-        static AudioEvent defer[DRAIN_CAP];
+        AudioEvent *defer=scratch.deferred;
         size_t d = 0;
         for (size_t i = n_apply; i < n; i++) {
             AudioEvent e = evs[i].e;

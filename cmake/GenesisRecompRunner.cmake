@@ -26,6 +26,8 @@
 # game repository can migrate.
 
 include_guard(GLOBAL)
+option(GENESIS_FM_BLOCK_SAMPLES "Batch faithful FM samples between register writes" ON)
+option(GENESIS_FAST_RB_DIGEST "Use portable XXH64 for complete rollback section bytes" ON)
 set(GENESIS_VDP_PLANE_IMPL "SCALAR" CACHE STRING "VDP scanline renderer (planes, sprites and composition)")
 set_property(CACHE GENESIS_VDP_PLANE_IMPL PROPERTY STRINGS SCALAR BATCHED)
 if(NOT GENESIS_VDP_PLANE_IMPL MATCHES "^(SCALAR|BATCHED)$")
@@ -45,6 +47,7 @@ endif()
 
 set(GENESIS_RUNNER_CORE_SOURCES
     main.c
+    host_wait.c
     sim_step.c
     rb_state.c
     rb_probe.c
@@ -85,6 +88,7 @@ set(GENESIS_RUNNER_CORE_SOURCES
 # and is listed by every consumer; a consumer lacking one of those is a
 # deliberate divergence the reconciler must not paper over.
 set(GENESIS_RUNNER_RECONCILED_SOURCES
+    host_wait.c
     cosim_state.c
     sim_step.c
     rb_state.c
@@ -120,6 +124,8 @@ endfunction()
 # Build requirements the runner places on the executable that links it.
 function(genesisrecomp_runner_target target)
     target_compile_definitions(${target} PRIVATE
+        GENESIS_FM_BLOCK_SAMPLES=$<BOOL:${GENESIS_FM_BLOCK_SAMPLES}>
+        GENESIS_FAST_RB_DIGEST=$<BOOL:${GENESIS_FAST_RB_DIGEST}>
         GENESIS_BATCHED_PLANES=$<STREQUAL:${GENESIS_VDP_PLANE_IMPL},BATCHED>)
     get_target_property(_done ${target} GENESIS_RUNNER_REQUIREMENTS)
     if(_done)
@@ -159,19 +165,23 @@ function(genesisrecomp_runner_target target)
 endfunction()
 
 # Build description for runner/runtime_evidence.c (runtime evidence headers):
-# engine + game `git describe`, refreshed before every build of <target> and
+# engine + game commit IDs, refreshed before every build of <target> and
 # rewritten only when it changes. The exact build identity is the executable
 # fingerprint, computed at run time; this is the readable part.
 function(_genesisrecomp_build_info target)
     find_package(Git QUIET)
     set(_dir "${CMAKE_CURRENT_BINARY_DIR}/genesis_build_info/${target}")
     set(_hdr "${_dir}/genesis_build_info.h")
+    set(_version "${CMAKE_PROJECT_VERSION}")
+    if(DEFINED GENESIS_GAME_VERSION AND NOT GENESIS_GAME_VERSION STREQUAL "")
+        set(_version "${GENESIS_GAME_VERSION}")
+    endif()
     set(_args
         "-DOUT=${_hdr}"
         "-DENGINE_DIR=${GENESIS_RUNNER_ENGINE_ROOT}"
         "-DGAME_DIR=${CMAKE_SOURCE_DIR}"
         "-DGIT=${GIT_EXECUTABLE}"
-        "-DGAME_VERSION=${CMAKE_PROJECT_VERSION}"
+        "-DGAME_VERSION=${_version}"
         -P "${GENESIS_RUNNER_ENGINE_ROOT}/cmake/GenesisBuildInfo.cmake")
     file(MAKE_DIRECTORY "${_dir}")
     execute_process(COMMAND "${CMAKE_COMMAND}" ${_args})

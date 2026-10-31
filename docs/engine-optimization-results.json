@@ -1,0 +1,1481 @@
+{
+  "schema": "GenesisEngineOptimizationResults1",
+  "issue": "beads-3vb.31",
+  "campaign": "beads-2wy8.1",
+  "status": "ready_for_owner_visual_review",
+  "updated_utc": "2026-10-28T13:13:39.463580+00:00",
+  "source_base": "f422ad52a04b9d253c0e9cbcdb3476aabd563ae8",
+  "candidates": {
+    "E01": {
+      "name": "Native CD execution regions",
+      "priority": "P1",
+      "status": "evaluated_rejected",
+      "disposition": "Two complete native fault-scope layouts passed Windows/Linux game and machine-fault correctness, but neither established runtime benefit. v9 increased instructions1.123/1.236percent. Revised v11 reduced instructions1.378/1.420percent yet CPU rose9.209/11.033percent (A/A drift -8.301percent), and cycles rose5.168/8.214percent. Conservatively rejected after two experiments; engine e817399/9abaa90/58da518 restore owned-spans core53fc7b4. Retain raw BAAB samples and rejected source. Larger execution regions remain deferred on E04 effect metadata and a bounded scheduler contract; this local fault-scope result does not rule out that architectural replacement.",
+      "evidence": [
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-region-cost.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-complete-region-cost.json",
+        "beads-rxq.2",
+        "58da518"
+      ]
+    },
+    "E02": {
+      "name": "Code identity and invalidation",
+      "priority": "P1",
+      "status": "implemented_catalog_guard_elision_deferred",
+      "disposition": "Generic exact-body catalog compaction45b4805 preserves every PC/full-word guard/cycle/operation variant and its original priority in the existing step-module ABI. Qualified source corpus reduces Main descriptors2409238 to1650902 and Sub161321 to137237. Final Windows and four Linux3000-frame runs match the frozen original in full state/pixels/WAV. Windows executable23.13percent smaller; unstripped Linux9.98percent smaller. Linux host instructions3.732percent fewer; CPU timing mixed(-15.08/+11.84percent reductions), not a runtime win. Guard elision remains deferred until all native/direct/import writers have sound ownership/versioning; public arrays are not a reason to preserve that architecture indefinitely.",
+      "evidence": [
+        "runner/cd/catalog_index.h",
+        "runner/cd/segacd.c",
+        "runner/cd/segacd_coordinator.c",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/cd-hybrid-game.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-cost.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-windows-game.json"
+      ]
+    },
+    "E03": {
+      "name": "Owned memory access",
+      "priority": "P1",
+      "status": "implemented_game_qualified",
+      "disposition": "Owned code spans core53fc7b4/engine86d2d0c pass final Windows/Linux3000-frame game gates and complete core/machine contracts. Every opcode/extension byte still checks current owned bytes. HINT/MMIO/1M/odd/wrap and ownership WAIT retain the portable fetch path. Remaining data-bus read attribution is below1percent per read helper on the measured route; no unmeasured second data-memory representation added. Generator-core7233852 and runtime-core53fc7b4 identities remain distinct.",
+      "evidence": [
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/cd-owned-spans-game.json",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/cd-windows-game-v8.json",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/cd-spans-profile-symbolized.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-cost.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-windows-game.json"
+      ]
+    },
+    "E04": {
+      "name": "Generated native arithmetic and state",
+      "priority": "P2",
+      "status": "evaluated_deferred",
+      "disposition": "Deferred larger local-register/flag-liveness regions on qualified generated effect metadata and observable-exit materialization. Current CD descriptors expose exact instruction boundaries, live code guards and arbitrary operation callbacks; treating every callback as a pure opcode would misclassify HLE. A useful next package can annotate canonical generated pure operations, batch Main-only register work within device/Z80 deadlines, and retain unknown callbacks as exits. This is permitted architectural replacement, not a requirement to preserve the old interface. The E01 fault-setup-only experiment was evaluated and rejected; a future region package must remove meaningful dispatch/state work rather than only relocating traps.",
+      "evidence": [
+        "external/m68k-recomp-core/profiles/genesis/code_generator.c",
+        "runner/cd/segacd_coordinator.c",
+        "runner/cd/catalog_lookup.h"
+      ]
+    },
+    "E05": {
+      "name": "Native call/control-flow consolidation",
+      "priority": "P2",
+      "status": "evaluated_deferred",
+      "disposition": "Existing cartridge generation already emits qualified direct calls/aliases; dynamic targets, guest return-stack changes and interrupt reentry still need real exits. CD larger control-flow regions depend on E04 canonical effect/edge metadata and a bounded scheduler contract, not just additional native function coverage. Unchanged static-tail-index tuning was previously neutral/rejected and is not repeated. Defer new region fusion to that coherent metadata package; retain all direct/dynamic caller behavior.",
+      "evidence": [
+        "external/m68k-recomp-core/profiles/genesis/code_generator.c",
+        "runner/glue.c",
+        "docs/NATIVE_OPTIMIZATION_BURNDOWN.md"
+      ]
+    },
+    "E06": {
+      "name": "Reusable native Z80 backend",
+      "priority": "P2",
+      "status": "evaluated_already_native",
+      "disposition": "The reusable uploaded-code/variant executor and generated native Z80 step already exist. Current SonicCD gates retire16241534 native Z80 instructions with zero floor/audio faults; cartridge driver qualification is retained in the earlier campaign. New CD attribution places bus-time coordination above the generated Z80 step itself, so E01/E07 address the reusable overhead. New driver catalogs/semantic SMPS HLE are title rollout T02/T13 and excluded. No new native-coverage or speed gain counted.",
+      "evidence": [
+        "runner/z80_recomp.c",
+        "runner/cd/z80_native.c",
+        "docs/Z80_STATIC_RECOMP.md",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/cd-region-windows-game.json"
+      ]
+    },
+    "E07": {
+      "name": "Event-driven waits and scheduling",
+      "priority": "P2",
+      "status": "implemented_game_qualified_further_coalescing_deferred",
+      "disposition": "Engine92bb86a derives each scanline deadline once per changed actual line counter, retaining exact restore/overflow behavior and event ordering. Machine contracts and actual Windows/Linux3000frame CD gates pass. Broader batching is deferred on explicit observer/effect metadata: Main/Sub MMIO, Z80 device timestamps, DMA completion and IRQs currently synchronize at observable boundaries. Fault-scope experiments alone did not improve runtime; do not extend them or skip useful guest work without a bounded pure-region contract.",
+      "evidence": [
+        "runner/cd/machine.c",
+        "tests/segacd/machine_test.c"
+      ]
+    },
+    "E08": {
+      "name": "Transfer spans and layout mapping",
+      "priority": "P2",
+      "status": "evaluated_deferred",
+      "disposition": "DMA is already advanced to exact six-clock word boundaries, including ownership WAIT, source FIFO consumption, PCM lane/+4 addressing, write protection and completion state. Active CPU intervals usually expose only short transfer spans; current1.58percent DMA advance attribution includes inactive calls, not demonstrated bulk-copy cost. Defer new bulk writes until a transfer-heavy built workload establishes long eligible spans. Larger device-advance coalescing belongs in E07 with MMIO/observer synchronization; do not use memcpy to cross observable completion clocks.",
+      "evidence": [
+        "runner/cd/dma.c",
+        "runner/cd/segacd.c",
+        "runner/video/genesis_vdp.c",
+        "tests/segacd/dma_test.c",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/cd-spans-profile-symbolized.json"
+      ]
+    },
+    "E09": {
+      "name": "Single image-production ownership",
+      "priority": "P1",
+      "status": "implemented_game_qualified",
+      "disposition": "Shared CD immutable raster inputs and lazy exact fallback16c14e6 pass final Windows/Linux3000-frame state/pixel/WAV gates.720000rows captured and442800composed:38.5percent original compositions omitted on this route, with898600retained bytes. CPU-visible hardware sprite status remains at its original deadline; per-row CRAM survives fallback. Cartridge already had lazy original rows. Omitted work is not a whole-game FPS claim.",
+      "evidence": [
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-raster-game.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-capture-contract.log",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-cost.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-windows-game.json"
+      ]
+    },
+    "E10": {
+      "name": "Renderer interface independent of aspect ratio",
+      "priority": "P1",
+      "status": "deferred",
+      "disposition": "Requires excluded title stock-fidelity/adoption T08; do not add an unused shared selector.",
+      "evidence": [
+        "runner/main.c:own_custom_row_enabled",
+        "docs/TITLE_OPTIMIZATION_BACKLOG.md:T08"
+      ]
+    },
+    "E11": {
+      "name": "Fused generic VDP raster",
+      "priority": "P1",
+      "status": "implemented_game_qualified",
+      "disposition": "Portable native packed tile rows34b08ee and byte-lane priority/shading composition705129b replace repeated per-pixel packing/selection. Kernel/provider/edge/width/frame contracts pass MSVC/GCC. Final Sonic1 stock+widescreen2400-frame and RKA stock+widescreen6000-frame gates preserve all image/state/full-WAV/work/rollback results. CD final Windows/Linux3000-frame gates also pass. No qualified per-game runtime speed claim under shared-host variation.",
+      "evidence": [
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\reference-attribution.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\native-compose-diff.log",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\s1-raster-game-gates.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\linux-raster-checks.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-cost.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-windows-game.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\s1-audio-game-gates.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\rka-game-gates-v10.json"
+      ]
+    },
+    "E12": {
+      "name": "Shared sprite evaluation jobs",
+      "priority": "P2",
+      "status": "implemented_game_qualified",
+      "disposition": "Hardware sprite capture occurs once per CD raster row; deferred fallback reuses captured lanes and never repeats sprite evaluation. Status, limits, priority and per-row palette remain exact in synthetic full-frame/provider contracts and final Windows/Linux3000-frame memory/pixel/WAV gates. No title SAT/scene policy changed. Further sprite caches are separately deferred under E13/E15.",
+      "evidence": [
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-raster-game.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-capture-contract.log",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-cost.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-windows-game.json"
+      ]
+    },
+    "E13": {
+      "name": "Versioned generic graphics derivation",
+      "priority": "P2",
+      "status": "evaluated_deferred",
+      "disposition": "Evaluated both write epochs and full immutable-input keys. Public direct VRAM/private-pattern writes and imports make bus-only epochs incomplete; a complete replacement must own every producer or compare complete inputs. Existing narrow caches were already neutral/rejected. New owned-row composition consumes only0.086percent of the sampled CD route (capture0.487percent); another row/palette cache is not justified there. Defer broader decoded-art ownership until a post-native-raster cartridge profile demonstrates enough affected cost; do not silently assume invalidation.",
+      "evidence": [
+        "runner/video/genesis_vdp.c",
+        "runner/cd/machine.c",
+        "docs/ENGINE_VDP_BATCHING.md",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/cd-spans-profile-symbolized.json"
+      ]
+    },
+    "E14": {
+      "name": "Native Sega CD stamp-device jobs",
+      "priority": "P2",
+      "status": "evaluated_deferred",
+      "disposition": "Generic stamp is already a native affine line job with explicit asynchronous completion, nibble priority and WordRAM writes. It has no samples in the recorded3000frame CD gameplay attribution. Defer a new block kernel pending a stamp-heavy built consumer/workload; neither synthetic throughput nor unrelated Blue Spheres title algorithms establish a current-game benefit. Preserve existing stamp/dma correctness fixtures for that future comparison.",
+      "evidence": [
+        "runner/cd/stamp.c",
+        "tests/segacd/stamp_test.c",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/cd-spans-profile-symbolized.json"
+      ]
+    },
+    "E15": {
+      "name": "Reuse unchanged hardware render results",
+      "priority": "P3",
+      "status": "evaluated_deferred",
+      "disposition": "Considered caching complete captured-row inputs plus CRAM and validating output ownership, rather than relying on unsafe end-of-frame VRAM hashes. Hardware sprite/status evaluation must continue through raster changes; frame-end equality cannot establish equal intermediate rows. Current sampled CD resolve_row cost0.086percent gives negligible ceiling after lazy ownership. Defer cross-frame generic packet reuse until a demonstrated static-render-heavy consumer; no title scene/image eligibility added.",
+      "evidence": [
+        "runner/cd/machine.c",
+        "runner/video/genesis_machine.c",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/cd-spans-profile-symbolized.json"
+      ]
+    },
+    "E16": {
+      "name": "Final pixels and upload ownership",
+      "priority": "P2",
+      "status": "implemented_lazy_pixels_upload_deferred",
+      "disposition": "CD original rows convert only when requested, using retained row CRAM and the exact64/192-entry palette; raw readers use the lazy getter. Final Windows/Linux game proof records38.5percent fewer original compositions and exact final pixels/WAV. Current pixel resolution attribution is0.086percent, not a demonstrated GPU/upload bottleneck. Further host upload ownership work remains deferred with E17/E34; no simulation image is repurposed for UI.",
+      "evidence": [
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-raster-game.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-capture-contract.log",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-cost.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-windows-game.json"
+      ]
+    },
+    "E17": {
+      "name": "Optional generic GPU raster backend",
+      "priority": "P3",
+      "status": "evaluated_deferred",
+      "disposition": "Immutable raster packets now provide a valid generic CPU-status/GPU-input boundary; the old subsystem split is not a design restriction. Current CD CPU composition is0.086percent and capture0.487percent in the sampled route. SDL software/dummy attribution does not measure a physical GPU. Defer a new shader/upload/backend until a real GPU workload demonstrates a worthwhile affected cost; preserve universal CPU output and raw capture.",
+      "evidence": [
+        "runner/video/genesis_vdp.h",
+        "runner/cd/machine.c",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/cd-spans-profile-symbolized.json"
+      ]
+    },
+    "E18": {
+      "name": "Independent engine work scheduling",
+      "priority": "P3",
+      "status": "evaluated_deferred",
+      "disposition": "Evaluated worker ownership around immutable raster packets and ordered audio intervals. Hardware status and next chip/snapshot state must be ready at their actual simulation boundaries; moving them to a worker cannot add an unqualified frame of latency. CD composition/capture are under1percent combined in current attribution, so dispatch/copy/barrier costs have little demonstrated headroom. Defer workers until an independently owned heavy job is measured after retained native spans.",
+      "evidence": [
+        "runner/sim_step.c",
+        "runner/cd/machine.c",
+        "runner/cd/audio_native.c",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/cd-spans-profile-symbolized.json"
+      ]
+    },
+    "E19": {
+      "name": "One ordered audio timeline",
+      "priority": "P2",
+      "status": "implemented_game_qualified",
+      "disposition": "Stable natural-run merging and reverse FM pair assignment preserve the original optional applied trace, including push indices. Static event storage increases from5MiB to6MiB (+1MiB), with typed shared sort/defer scratch.1200random and262144-event independent old-order oracle cases pass MSVC/GCC and ASan/UBSan. Final Sonic1 stock/wide2400-frame full WAV/applied-trace/state/replay and RKA stock/wide6000-frame full WAV/state/replay gates pass. CD uses its separate native event scheduler and receives no cartridge timeline gain claim. Runtime timing is unqualified.",
+      "evidence": [
+        "runner/audio/event_order.h",
+        "runner/audio/mixer.c",
+        "tests/runtime/audio_event_order_test.c",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-cost.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-windows-game.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\s1-audio-game-gates.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\rka-game-gates-v10.json"
+      ]
+    },
+    "E20": {
+      "name": "Faithful FM kernels",
+      "priority": "P1",
+      "status": "evaluated_deferred",
+      "disposition": "The faithful FM sample-block wrapper is already shipped; no new gain is credited to it. Replacing or vector-packing the YM2612 operator kernel is allowed, but needs a concrete bit-identical replacement across envelope/LFO/feedback/DAC/register-write and serializer state. No such replacement is qualified by the current vendor API or historical profile alone. E36 compiler optimization and E21 exact PSG spans are the bounded first alternatives; defer a new FM kernel until current post-block attribution and a specific arithmetic/layout design justify that separate chip qualification.",
+      "evidence": [
+        "runner/audio/ym2612_ymfm.cpp",
+        "runner/external/ymfm/src/ymfm_fm.ipp",
+        "tests/runtime/fm_block_test.cpp",
+        "docs/ENGINE_VDP_BATCHING.md"
+      ]
+    },
+    "E21": {
+      "name": "PSG event spans",
+      "priority": "P3",
+      "status": "implemented_game_qualified",
+      "disposition": "Exact settled-muted PSG spans57b4cea advance tone counters, phase, periodic/white-noise LFSR and pending samples in closed form, writing zeros in bulk only with settled filters and all channels muted. Active sound/filter tails keep the original sample path. Dual scalar/optimized state+PCM and pending-output restore tests pass MSVC/GCC. Final Sonic1/RKA and Windows/Linux CD full WAV/state gates pass. No proven whole-game runtime gain claimed.",
+      "evidence": [
+        "tests/runtime/psg_span_test.c",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/psg-spans-windows.log",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/psg-spans-linux.log",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/cd-windows-game-v8.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-cost.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-windows-game.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\s1-audio-game-gates.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\rka-game-gates-v10.json"
+      ]
+    },
+    "E22": {
+      "name": "Sega CD PCM/CDDA spans",
+      "priority": "P2",
+      "status": "evaluated_deferred",
+      "disposition": "PCM/CDDA already advance natively over timed intervals; remaining per-sample sinks expose ordered timestamps, phase/fader state, queue accounting and error boundaries. Replacing these with block publication is viable through a new generic span-sink contract and mechanical native mixer adoption, but cannot simply omit zero samples/callbacks. Current CDDA advance1.43percent includes transport work and establishes no material block-publication saving. Defer that contract until source/mixer attribution demonstrates enough cost; retain the existing exact PCM/CDDA fixtures.",
+      "evidence": [
+        "runner/cd/rf5c164.c",
+        "runner/cd/cdda.c",
+        "runner/cd/audio_native.c",
+        "runner/cd/audio_mix.c",
+        "tests/segacd/cdda_test.c"
+      ]
+    },
+    "E23": {
+      "name": "Synthesis-to-device pipeline",
+      "priority": "P1",
+      "status": "evaluated_deferred",
+      "disposition": "Examined synthesis through staging/mixing/resampling as one pipeline. Integer PSG division, clipping, the deterministic generated-WAV tap, extra-source interpolation, master volume and DRC phase make moving mixing after resampling behavior-changing unless the complete computation is reproduced. Copies alone move small bounded frame buffers; current CD interpolation attribution1.89percent is not evidence for dropping required synthesis or output samples. Retain shared E19 ordering and E21/E25 exact span wins; defer fused chip-to-device production pending a concrete equivalent stream/kernel design and matched host-output costs.",
+      "evidence": [
+        "runner/audio.c",
+        "runner/audio/mixer.c",
+        "runner/cd/audio_native.c",
+        "runner/cd/audio_mix.c",
+        "tests/runtime/audio_extra_test.c"
+      ]
+    },
+    "E24": {
+      "name": "Audio buffer ownership",
+      "priority": "P3",
+      "status": "evaluated_deferred",
+      "disposition": "The host bridge already uses one bounded mixed frame and one producer handoff, with the audio-device lock protecting SPSC ring/DRC/callback state. Replacing this with atomics/borrowed buffers requires ownership of all shared callback state, not just a lock deletion. Lock/callback timing instrumentation already exists; dummy-device throughput does not establish speaker contention. Defer a new handoff on a demonstrated physical-device lock/jitter problem, preserving concealment/recovery and callback deadlines.",
+      "evidence": [
+        "runner/audio.c",
+        "runner/audio.h",
+        "tests/runtime/audio_extra_test.c"
+      ]
+    },
+    "E25": {
+      "name": "Exact constant/silent spans",
+      "priority": "P3",
+      "status": "implemented_psg_other_sources_deferred",
+      "disposition": "Exact settled PSG silence is implemented under E21; counters and LFSR never freeze, and later unmute/restore remains exact. CDDA/PCM zero samples still carry observable queue/timestamp/fader/underflow state, so silence alone does not allow dropping them. A compressed timed-run source would require a new mixer/observer contract plus a measured cost; current CDDA advance attribution1.43percent is the entire transport, not just zero publication. Keep these sources faithful and defer unmeasured run compression. Final Sonic1/RKA and Windows/Linux CD whole-WAV and state gates now pass; retain the PSG portion and the explicit other-source deferral.",
+      "evidence": [
+        "runner/audio/sn76489.c",
+        "runner/cd/cdda.c",
+        "runner/cd/rf5c164.c",
+        "runner/cd/audio_mix.c"
+      ]
+    },
+    "E26": {
+      "name": "Bounded generic media prefetch",
+      "priority": "P2",
+      "status": "implemented_read_ahead_async_deferred",
+      "disposition": "Sequential nonresident reads preserve bounded1MiB stdio read-ahead by skipping redundant seeks96a2e2f. Final Windows/Linux3000-frame state/pixel/WAV gates pass; current route reports2139raw reads,116resident reads and2host seeks. Guest seek/delivery/pause clocks are unchanged, with injected read/error and synchronous fallback checks. Async prefetch remains deferred without a demonstrated host read stall; do not create idle workers merely for coverage.",
+      "evidence": [
+        "runner/cd/disc_image.c",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/cd-owned-spans-game.json",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/cd-windows-game-v8.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-cost.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-windows-game.json"
+      ]
+    },
+    "E27": {
+      "name": "Verified media handoff contract",
+      "priority": "P1",
+      "status": "deferred",
+      "disposition": "Shared image open already verifies payload once; duplicate launcher pass requires excluded T12 integration and safe cross-process ownership proof.",
+      "evidence": [
+        "runner/cd/disc_image.c:hash_payload",
+        "docs/TITLE_OPTIMIZATION_BACKLOG.md:T12"
+      ]
+    },
+    "E28": {
+      "name": "Portable full-media validation",
+      "priority": "P2",
+      "status": "implemented_game_qualified",
+      "disposition": "Optional OpenSSL full-payload validation outside Windows, retained Windows CNG and universal C fallback pass provider-missing/forced-portable and injected init/update/final failure checks. Final combined Windows/Linux game gates pass. Earlier six balanced Linux launch observations show12.4/13.8percent less wall and40.2/41.1percent less processCPU (A/A drift2.0/1.7percent), bounded shared-host evidence, not FPS. Selected Linux system libcrypto dependency is recorded; Windows review build needs no added crypto DLL. Catalog-only startup observations are neutral/inconclusive and are not added to these gains.",
+      "evidence": [
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-media-startup.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\linux-media-providers.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\windows-media-providers.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-cost.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-windows-game.json"
+      ]
+    },
+    "E29": {
+      "name": "Resident-media representation",
+      "priority": "P2",
+      "status": "implemented_game_qualified",
+      "disposition": "Read-only mapped first-data-track residency96a2e2f shares bytes verified during mandatory full payload hashing; the256MiB cap and copied fallback remain. Windows/Linux full game proof and forced mapping-failure checks pass. Current mappedBytes139735888/privateResidentBytes0 removes the separate private copy; mapping length is not an RSS saving claim. Catalog-only matched Linux RSS samples are retained separately with their raw process status.",
+      "evidence": [
+        "runner/cd/disc_image.c",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/cd-owned-spans-game.json",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/cd-windows-game-v8.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-cost.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-windows-game.json"
+      ]
+    },
+    "E30": {
+      "name": "Reusable console-firmware services",
+      "priority": "P2",
+      "status": "evaluated_deferred",
+      "disposition": "The native BIOS instruction catalog is reusable, but a ROM hash/entry PC is not a closed high-level BIOS service ABI. Disc command timing, ownership, IRQs, BRAM and BIOS UI remain observable. The current loading HLE is a game-owned file/SP service, so moving it into the engine would not generalize it. No standard BIOS service is demonstrated hot in the current gameplay profile. Defer whole-service HLE until a named reusable firmware ABI and its complete effects/workload are established; title services stay in T01/T05/T12.",
+      "evidence": [
+        "runner/cd/standalone_program.c",
+        "runner/cd/standalone_services.c",
+        "runner/cd/segacd_coordinator.c",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/cd-spans-profile-symbolized.json"
+      ]
+    },
+    "E31": {
+      "name": "Engine snapshot representation and identity",
+      "priority": "P2",
+      "status": "evaluated_deferred",
+      "disposition": "Authoritative sections and complete-byte identity already share one table; the portable full-byte XXH64 change and discarded replay work are shipped. Dirty-page/delta identity needs every native/direct/import writer or protected-page ownership, not bus-only epochs. Title fiber/snapshot payload dominates historical dense-replay cost and is excluded. Defer a new generic delta/page representation until post-XXH64 per-section costs and a complete writer/restore model justify it. Current-build snapshots/native saves remain required; old state compatibility is not a dependency.",
+      "evidence": [
+        "runner/rb_state.c",
+        "runner/rb_digest.h",
+        "runner/frame_snapshots.c",
+        "docs/PERFORMANCE.md"
+      ]
+    },
+    "E32": {
+      "name": "Serializer and snapshot storage",
+      "priority": "P3",
+      "status": "evaluated_deferred",
+      "disposition": "Verified snapshot ownership: rbe_snap_ring_store takes the serialized blob on success, so the local-state malloc is retained storage, not a leak or an avoidable immediate-copy buffer. Reuse would require a transactional capacity/borrow API in shared rbengine so a failed serialization does not destroy the prior rewind entry. Generic thumbnails are already bounded; ordinary snapshot cost was historically small after the shipped digest improvement. Defer pooling until a current allocation/copy cost demonstrates benefit; preserve atomic saves and invalid-input checks.",
+      "evidence": [
+        "runner/local_states.c",
+        "runner/rb_state.c",
+        "external/rbengine/include/retcomm_rbengine/snap_ring.h",
+        "external/rbengine/src/snap/rbe_snap_ring.c",
+        "tests/runtime/local_states_test.c"
+      ]
+    },
+    "E33": {
+      "name": "Discarded-replay engine work",
+      "priority": "P2",
+      "status": "evaluated_already_implemented",
+      "disposition": "Additional shared cartridge replay image work ruled out at this base: s_resim_hooks has no sink/producer/post-drain observation; machine_run_frame_ex only evaluates sprite status on discarded rows; genesis_sim_step continues chip evolution. Current Sonic1 rollback probes pass. Remaining pre-raster work sets simulation-affecting viewport/RAM parameters and cannot be removed. Title publication algorithms remain outside scope; new CD deferred work is tracked under E09.",
+      "evidence": [
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\s1-raster-game-gates.json",
+        "runner/main.c:s_resim_hooks",
+        "runner/video/genesis_machine.c:machine_run_frame_ex",
+        "runner/sim_step.c:genesis_sim_step"
+      ]
+    },
+    "E34": {
+      "name": "Host presentation/deadline pipeline",
+      "priority": "P2",
+      "status": "evaluated_deferred",
+      "disposition": "Cartridge high-resolution deadline/D3D11 work already ships. CD keeps exact rational NTSC pacing with a coarse sleep; blindly reusing the shared sleep/spin helper would add a roughly1ms spin on portable hosts, so it is not a free improvement. Raw indexed/ARGB output and UI copies have different ownership; mutating the simulation image for UI would corrupt raw capture/fallback. Defer further pacing/GPU-present consolidation to measured delivery jitter/physical GPU costs and a suitable nonspinning fallback/shared UI output contract. Reuse beads-hj4v; no new unmeasured host pipeline adopted.",
+      "evidence": [
+        "runner/main.c",
+        "runner/cd/standalone.c",
+        "runner/cd/presentation.c",
+        "runner/host_wait.c",
+        "beads-hj4v"
+      ]
+    },
+    "E35": {
+      "name": "Asynchronous engine persistence and diagnostics",
+      "priority": "P3",
+      "status": "evaluated_deferred",
+      "disposition": "Default runtime evidence is buffered/dirty-tracked and rate-limited to at most one write per minute; yield tracing is already opt-in. Native saves and quickstates are transactional cold operations. No default hot-path file stall is demonstrated. Defer asynchronous persistence/trace rings to an enabled diagnostic workload or measured save stall, reusing beads-3vb.11 and preserving shutdown/error/atomic-replacement semantics. The audio ordering change explicitly preserves the optional applied trace and its original indices.",
+      "evidence": [
+        "runner/runtime_evidence.c",
+        "runner/local_states.c",
+        "runner/glue.c",
+        "runner/audio/mixer.c",
+        "beads-3vb.11"
+      ]
+    },
+    "E36": {
+      "name": "Whole-program native build optimization",
+      "priority": "P2",
+      "status": "implemented_catalog_lto_deferred",
+      "disposition": "Whole-program generated catalog canonicalization45b4805 is qualified on the current CD consumer without fast math, new ISA or a new runtime ABI. Ordinary linking drops duplicate metadata and unneeded operation objects: Windows142430208 to109482496bytes, unstripped Linux544293880 to489968336bytes. Loaded data.rel.ro falls102851160 to71537280bytes; relocation table61718808 to42927408bytes. Both platform game gates pass; instruction retirement falls3.732percent but runtime timing is inconclusive. Supported source pipeline enables compaction by default, retains original-registry fallback on unsupported formats and offers --no-canonicalize-catalogs. LTO/PGO remain deferred pending matched built-game benefit; no new unused compiler switch introduced.",
+      "evidence": [
+        "cmake/GenesisRecompRunner.cmake",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/s1-audio-bundle-build.json",
+        "G:/Temp/Codex/genesis-engine-burndown-20261027/nas-admission",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-cost.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-windows-game.json"
+      ]
+    }
+  },
+  "packages": {
+    "native-tile-and-composition-spans-v1": {
+      "engine": "705129b7918f9ab47c614c1ed2324e0428dfc9c3",
+      "baseline_engine": "f422ad52a04b9d253c0e9cbcdb3476aabd563ae8",
+      "consumer": "3ffa2087d6861872738564d15f638396671090ce",
+      "baseline_binary_sha256": "2fc01d3d885e0ad809348aff1e37f756b6c589f0bfc9f9262401739e00ebb872",
+      "candidate_binary_sha256": "15b5c75a5ce3651ad626372acd2f7bbe12fd8a06632d16c3076138cbcfa86d31",
+      "game_rows": [
+        {
+          "game": "Sonic1",
+          "views": [
+            "stock",
+            "16:9"
+          ],
+          "correctness": "passed matching framebuffer/PNG/machine/audio/work/rollback probes",
+          "correctness_receipt": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\s1-raster-game-gates.json",
+          "performance": "unqualified-no-measurement",
+          "performance_samples": []
+        }
+      ],
+      "other_games": "not built/qualified yet",
+      "portable_tests": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\linux-raster-checks.json",
+      "phase": "historical component evidence; superseded by current_game_packages for final integration status"
+    },
+    "native-raster-and-deferred-image-v2": {
+      "package": "native-raster-and-deferred-image-v2",
+      "engine": "fc55f70ca1319a49833543fc5bd505a731518504",
+      "implementation": "16c14e6242002389d5e715884f16f99e988b09bb",
+      "baseline_engine": "f422ad52a04b9d253c0e9cbcdb3476aabd563ae8",
+      "retained_bytes": 898600,
+      "synthetic_raster": {
+        "captured_rows": 934,
+        "composed_rows": 694,
+        "eager_provider_fallback_rows": 26,
+        "exact_pixels_and_device_state": true
+      },
+      "checks": [
+        "Windows MSVC full CPU frame and deferred/eager raster contract",
+        "Linux GCC native and forced-portable/scalar raster contracts",
+        "4000-case original VDP differential plus directed cases",
+        "unsupported providers/invalid packets reject before writes"
+      ],
+      "evidence": [
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-capture-contract.log",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\linux-capture-contract.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\linux-capture-contract.log",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\captured-raster-contract-diff.log"
+      ],
+      "per_game": [
+        {
+          "game": "SonicCD",
+          "host": "Linux GCC13.3 WSL, SDL dummy/software, normal emulated clocks",
+          "consumer": "f1b5824ef77369e42283a53d433d2b2666bc7521",
+          "frames": 3000,
+          "correctness": "Exact11checkpoint screenshots and CPU/device observations, full raw memory/pixels and WAV match",
+          "expanded_frames": 1156,
+          "fallback_frames": 1844,
+          "captured_rows": 720000,
+          "composed_rows": 442800,
+          "original_compositions_omitted_pct": 38.5,
+          "retained_bytes": 898600,
+          "performance": "Removed work counted; no whole-runtime timing qualification",
+          "evidence": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-raster-game.json"
+        }
+      ],
+      "performance": "unqualified; built CD game validation pending; synthetic omitted work is not a whole-game speed claim",
+      "phase": "historical component evidence; superseded by current_game_packages for final integration status"
+    },
+    "native-raster-and-media-provider-v3": {
+      "engine": "2e83cd7554ec40a6d47399f6939d71865d004359",
+      "implementation": "2e83cd7",
+      "build": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-media-build.json",
+      "game_rows": [
+        {
+          "game": "SonicCD",
+          "platform": "Linux OpenSSL3.0.13",
+          "workload": "Full payload verification plus one native runtime frame, warm host caches, isolated native saves and muted SDL dummy. Bounded launch-cost observation under shared host load; not a quiet-host stress/performance qualification.",
+          "savings_pct": {
+            "wall_seconds": [
+              13.82282127579979,
+              12.433797513981759
+            ],
+            "cpu_seconds": [
+              41.09955020174836,
+              40.174964698349505
+            ]
+          },
+          "AA_drift_pct": {
+            "wall_seconds": -1.9801434591383615,
+            "cpu_seconds": -1.6604070054317632
+          },
+          "correctness": "Six launches have exact raw memory/frame/audio and native execution summaries",
+          "evidence": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-media-startup.json",
+          "performance_qualification": "Bounded shared-host full-launch observation; final combined runtime and Windows integration gates remain"
+        }
+      ],
+      "checks": [
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\windows-media-providers.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\linux-media-providers.json"
+      ],
+      "portable": "C fallback with missing OpenSSL and forced portable passes; real provider init/update/final failure restart passes",
+      "costs": "Optional linked libcrypto dependency outside Windows; package must carry selected runtime library/license; Windows CNG retained; cartridge consumers do not link this component",
+      "final_integration_qualified": false,
+      "phase": "historical component evidence; superseded by current_game_packages for final integration status"
+    }
+  },
+  "timing_admission": [
+    {
+      "path": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\nas-admission\\preflight-1793171613954490500.json",
+      "eligible": false,
+      "selected_peak_load_percent": 51.593823636724665,
+      "observed_utc": "2026-10-28T07:13:33.954491+00:00",
+      "next_check_not_before_utc": "2026-10-28T07:43:33.954491+00:00"
+    },
+    {
+      "path": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\nas-admission\\preflight-1793173451173975900.json",
+      "eligible": false,
+      "selected_peak_load_percent": 10.994979442276176,
+      "observed_utc": "2026-10-28T07:44:11.1739757Z",
+      "next_check_not_before_utc": "2026-10-28T08:14:11.1739757Z"
+    }
+  ],
+  "authoritative_completion": "36/36 families evaluated with explicit implemented/partial, existing, rejected or concrete deferred dispositions. Final representative built-game gates pass and owner review builds are prepared. No merge/release; owner visual acceptance remains.",
+  "catalog_experiments": {
+    "direct_layout": {
+      "engine": "e8f3159",
+      "decision": "replaced after noisy/slower CPU observations; not accepted as a gain",
+      "evidence": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-index-game.json"
+    },
+    "hot_front_plus_sparse_backing": {
+      "engine": "e375dc8",
+      "decision": "retain for combined qualification; timing neutral/inconclusive under drift",
+      "evidence": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-hybrid-game.json",
+      "exact_presented_frame_runs": 4,
+      "frames_per_run": 3000,
+      "host_instruction_reductions_pct": [
+        2.8043023391920996,
+        2.9595757927235455
+      ],
+      "instruction_AA_drift_pct": 0.07007339143765279,
+      "cpu_AA_drift_pct": -5.6661562021439345,
+      "backing_bytes_per_cpu": [
+        506384,
+        717408
+      ],
+      "description": "Original compact128-slot hot cache remains; sparse bounded backing only saves/restores evicted slots. Descriptor searches31321/18184; exact CPU/device/raw state/images/WAV."
+    },
+    "exact_body_compaction": {
+      "decision": "retain footprint/repeated-work reduction; runtime/startup neutral-inconclusive",
+      "source": "45b4805",
+      "generation": {
+        "seconds": 102.5,
+        "source_inputs_verified_against_qualified_manifest": true,
+        "groups": {
+          "MAIN": {
+            "input_entries": 2409238,
+            "unique_entries": 1650902,
+            "output_modules": 132
+          },
+          "SUB": {
+            "input_entries": 161321,
+            "unique_entries": 137237,
+            "output_modules": 15
+          }
+        },
+        "manifest_sha256": "16d75fcac60ed2ea1f061bee9aa84197f163905cd386a15b13e7607f3bf79da8",
+        "tool_sha256": "adc8d638bda6315b308a5f63d4f1d4a2efad61519b31e3e81c125cf038a92c10",
+        "output": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-compact-catalogs-v12"
+      },
+      "cost": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-cost.json",
+      "sections": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-sections.txt"
+    }
+  },
+  "newest_game_gates": {
+    "sonic1": [
+      {
+        "view": "off",
+        "passed": true,
+        "differences": [],
+        "evidence": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\s1-audio-correctness-v10-off\\result.json"
+      },
+      {
+        "view": "16:9",
+        "passed": true,
+        "differences": [],
+        "evidence": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\s1-audio-correctness-v10-16x9\\result.json"
+      }
+    ],
+    "rocket_knight_adventures": [
+      {
+        "view": "off",
+        "passed": true,
+        "evidence": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\rka-correctness-v10-off\\result.json",
+        "differences": []
+      },
+      {
+        "view": "16:9",
+        "passed": true,
+        "evidence": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\rka-correctness-v10-16x9\\result.json",
+        "differences": []
+      }
+    ],
+    "cd_windows": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-windows-game.json",
+    "cd_linux_four_runs": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-cost.json"
+  },
+  "evaluation_summary": "Evaluation complete; deferred goals remain opportunities, not implemented wins. Overlapping families share coherent packages. Timing-host availability is not a blocker and no unqualified FPS claim is made.",
+  "evaluation_counts": {
+    "rejected": 1,
+    "implemented_or_partial": 14,
+    "deferred": 19,
+    "existing": 2
+  },
+  "current_game_packages": [
+    {
+      "game": "Sonic1",
+      "package": "portable native VDP rows/compositor + exact PSG silence + cartridge ordered audio",
+      "build": {
+        "package": "native-vdp-and-owned-audio-timeline-v10",
+        "consumer": "3ffa2087d6861872738564d15f638396671090ce",
+        "compiler": "Full rebuild of both arms with the same current MSVC19.44 toolset; previous v1 reference retained separately",
+        "builds": {
+          "reference": {
+            "binary": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\s1-reference\\Release\\SonicTheHedgehogRecomp.exe",
+            "sha256": "4b19f49eb9bbd7267ce3ec0b1c9ff24a5dd9652086b2c0590fd081d64d7a405a",
+            "bytes": 4631040,
+            "engine": "f422ad52a04b9d253c0e9cbcdb3476aabd563ae8"
+          },
+          "candidate": {
+            "binary": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\s1-native-row\\Release\\SonicTheHedgehogRecomp.exe",
+            "sha256": "3fc62b8573e8e0c74dfd2e7e6ef9e6d1e2dbd8591465eb787ad385258a2b3b06",
+            "bytes": 4635136,
+            "engine": "916c7386490e9102feac14539b6bddcc3f2eee10"
+          }
+        },
+        "timeline_storage_cost_bytes": 1048576,
+        "diagnostic_indices_preserved": true
+      },
+      "evidence": [
+        {
+          "view": "off",
+          "passed": true,
+          "differences": [],
+          "evidence": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\s1-audio-correctness-v10-off\\result.json"
+        },
+        {
+          "view": "16:9",
+          "passed": true,
+          "differences": [],
+          "evidence": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\s1-audio-correctness-v10-16x9\\result.json"
+        }
+      ],
+      "performance": "Runtime neutral/inconclusive; no qualified speed claim; +1MiB static event storage."
+    },
+    {
+      "game": "Rocket Knight Adventures",
+      "package": "portable native VDP rows/compositor + exact PSG silence + cartridge ordered audio",
+      "build": {
+        "package": "shared-vdp-and-owned-audio-timeline-v10",
+        "consumer": "9f645751c2308ca2faa678fef8c9119cfdcd5f41",
+        "ui": "faa3330fd574fcfc9d64b0381d301cdfb87a62d4",
+        "rom_sha256": "85831d4f7d35bf233b5581c3ed8c05bac64721f65713426bfa00d2f9a792a7aa",
+        "builds": {
+          "reference": {
+            "binary": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\rka-reference\\Release\\RKARecomp.exe",
+            "sha256": "f6879c61210b099dd3d99e50cb046eaf8ba2203861a2b64f5d7f97940c3d6e01",
+            "bytes": 8043520,
+            "engine": "f422ad52a04b9d253c0e9cbcdb3476aabd563ae8"
+          },
+          "candidate": {
+            "binary": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\rka-candidate\\Release\\RKARecomp.exe",
+            "sha256": "c68482518994952285c7bf587e65d78b989d4d6e35a174c1fb794126e485f3af",
+            "bytes": 8046592,
+            "engine": "916c7386490e9102feac14539b6bddcc3f2eee10"
+          }
+        }
+      },
+      "evidence": [
+        {
+          "view": "off",
+          "passed": true,
+          "evidence": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\rka-correctness-v10-off\\result.json",
+          "differences": []
+        },
+        {
+          "view": "16:9",
+          "passed": true,
+          "evidence": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\rka-correctness-v10-16x9\\result.json",
+          "differences": []
+        }
+      ],
+      "performance": "Runtime neutral/inconclusive; no qualified speed claim; +1MiB static event storage."
+    },
+    {
+      "game": "SonicCD",
+      "package": "shared raster ownership/media verification+residency/read-ahead/catalog hot+backing cache/owned live guard spans/scanline deadlines/exact PSG silence/compact descriptors; no cartridge event-order package and no rejected fault scopes",
+      "builds": {
+        "windows": {
+          "baseline": {
+            "package": "retained-no-scope-baseline-catalog-v12",
+            "phase": "baseline",
+            "source": {
+              "engine": "9e675dcf51299044baa4c07017049a2cc9fce7ee",
+              "clean": true,
+              "runtime_core": "53fc7b417d5c194a5ebdf8d623c1c4501226eb60"
+            },
+            "consumer": {
+              "head": "f1b5824ef77369e42283a53d433d2b2666bc7521"
+            },
+            "binary": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-retained-v12-baseline\\SonicCD.exe",
+            "sha256": "d7f2793030e1bc0dd9a4b633c68dd56d113551f254f29af8c39de8da671069fb",
+            "bytes": 142430208,
+            "runtime_core": "53fc7b417d5c194a5ebdf8d623c1c4501226eb60",
+            "generator_core": "7233852a6e45d8779b9dae8b29afd6b94d5231dc",
+            "native_archive": "Qualified unchanged generated operation archive; original metadata selected only in baseline",
+            "compaction_receipt": null
+          },
+          "compact": {
+            "package": "retained-no-scope-compact-catalog-v12",
+            "phase": "compact",
+            "source": {
+              "engine": "45b48050b28c74ad09c269bdccf1859dbd8c7126",
+              "clean": true,
+              "runtime_core": "53fc7b417d5c194a5ebdf8d623c1c4501226eb60"
+            },
+            "consumer": {
+              "head": "f1b5824ef77369e42283a53d433d2b2666bc7521"
+            },
+            "binary": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-windows\\runtime\\Release\\SonicCD.exe",
+            "sha256": "aefcf32fcce2a6fae36a6c50c342d6afc6fd0619ade2f206441ddb5040b75915",
+            "bytes": 109482496,
+            "runtime_core": "53fc7b417d5c194a5ebdf8d623c1c4501226eb60",
+            "generator_core": "7233852a6e45d8779b9dae8b29afd6b94d5231dc",
+            "native_archive": "Qualified unchanged generated operation archive; original metadata selected only in baseline",
+            "compaction_receipt": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-compact-generation-receipt-v12.json"
+          }
+        },
+        "linux": {
+          "baseline": {
+            "package": "retained-no-scope-baseline-catalog-v12",
+            "phase": "baseline",
+            "source": {
+              "engine": "9e675dcf51299044baa4c07017049a2cc9fce7ee",
+              "clean": true,
+              "runtime_core": "53fc7b417d5c194a5ebdf8d623c1c4501226eb60"
+            },
+            "consumer": {
+              "head": "f1b5824ef77369e42283a53d433d2b2666bc7521"
+            },
+            "binary": "/tmp/genesis-engine-cd-raster-20261028/candidate-retained-v12-baseline/SonicCD",
+            "sha256": "7415f5470b0b7e188b80c6443fd8430e1b1f2cf73781eb1d7278b7614352b75c",
+            "bytes": 544293880,
+            "runtime_core": "53fc7b417d5c194a5ebdf8d623c1c4501226eb60",
+            "generator_core": "7233852a6e45d8779b9dae8b29afd6b94d5231dc",
+            "native_archive": "Qualified unchanged generated operation archive; original metadata selected only in baseline",
+            "compaction_receipt": null
+          },
+          "compact": {
+            "package": "retained-no-scope-compact-catalog-v12",
+            "phase": "compact",
+            "source": {
+              "engine": "45b48050b28c74ad09c269bdccf1859dbd8c7126",
+              "clean": true,
+              "runtime_core": "53fc7b417d5c194a5ebdf8d623c1c4501226eb60"
+            },
+            "consumer": {
+              "head": "f1b5824ef77369e42283a53d433d2b2666bc7521"
+            },
+            "binary": "/tmp/genesis-engine-cd-raster-20261028/candidate/runtime/SonicCD",
+            "sha256": "b31e7d743f1d06a2577ec49d36199ef2a3ccf0d65347b9aec9cd5f98d3e7175c",
+            "bytes": 489968336,
+            "runtime_core": "53fc7b417d5c194a5ebdf8d623c1c4501226eb60",
+            "generator_core": "7233852a6e45d8779b9dae8b29afd6b94d5231dc",
+            "native_archive": "Qualified unchanged generated operation archive; original metadata selected only in baseline",
+            "compaction_receipt": "/mnt/g/Temp/Codex/genesis-engine-burndown-20261027/cd-compact-generation-receipt-v12.json"
+          }
+        }
+      },
+      "evidence": [
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-windows-game.json",
+        "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-v12-cost.json"
+      ],
+      "performance": {
+        "catalog_only_host_instruction_reductions_pct": [
+          3.73272367702312,
+          3.7322006180248057
+        ],
+        "catalog_only_cpu_reductions_pct": [
+          -15.080527086383633,
+          11.844077961019527
+        ],
+        "cpu_AA_drift_pct": -2.3426061493410977,
+        "CPU_decision": "Mixed, not a proven runtime gain or reproducible regression; retain footprint gain. Shared-host normal-cadence samples, not stress qualification.",
+        "startup": {
+          "windows": {
+            "schema": "GenesisCatalogStartup12",
+            "platform": "windows",
+            "baseline": {
+              "package": "retained-no-scope-baseline-catalog-v12",
+              "phase": "baseline",
+              "source": {
+                "engine": "9e675dcf51299044baa4c07017049a2cc9fce7ee",
+                "clean": true,
+                "runtime_core": "53fc7b417d5c194a5ebdf8d623c1c4501226eb60"
+              },
+              "consumer": {
+                "head": "f1b5824ef77369e42283a53d433d2b2666bc7521"
+              },
+              "binary": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-retained-v12-baseline\\SonicCD.exe",
+              "sha256": "d7f2793030e1bc0dd9a4b633c68dd56d113551f254f29af8c39de8da671069fb",
+              "bytes": 142430208,
+              "runtime_core": "53fc7b417d5c194a5ebdf8d623c1c4501226eb60",
+              "generator_core": "7233852a6e45d8779b9dae8b29afd6b94d5231dc",
+              "native_archive": "Qualified unchanged generated operation archive; original metadata selected only in baseline",
+              "compaction_receipt": null
+            },
+            "candidate": {
+              "package": "retained-no-scope-compact-catalog-v12",
+              "phase": "compact",
+              "source": {
+                "engine": "45b48050b28c74ad09c269bdccf1859dbd8c7126",
+                "clean": true,
+                "runtime_core": "53fc7b417d5c194a5ebdf8d623c1c4501226eb60"
+              },
+              "consumer": {
+                "head": "f1b5824ef77369e42283a53d433d2b2666bc7521"
+              },
+              "binary": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-windows\\runtime\\Release\\SonicCD.exe",
+              "sha256": "aefcf32fcce2a6fae36a6c50c342d6afc6fd0619ade2f206441ddb5040b75915",
+              "bytes": 109482496,
+              "runtime_core": "53fc7b417d5c194a5ebdf8d623c1c4501226eb60",
+              "generator_core": "7233852a6e45d8779b9dae8b29afd6b94d5231dc",
+              "native_archive": "Qualified unchanged generated operation archive; original metadata selected only in baseline",
+              "compaction_receipt": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-compact-generation-receipt-v12.json"
+            },
+            "scope": "Six warm-cache full-launch observations through one native frame and complete media validation; shared host, not quiet-host qualification. No shader/emulated-delay or verification bypass.",
+            "samples": [
+              {
+                "arm": "A",
+                "binary_sha256": "d7f2793030e1bc0dd9a4b633c68dd56d113551f254f29af8c39de8da671069fb",
+                "command": [
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-retained-v12-baseline\\SonicCD.exe",
+                  "--bios",
+                  "F:\\Projects\\segagenesisrecomp\\_wt-sonic-cd\\build\\private-inputs\\segacd-bios-us-1.10.bin",
+                  "--disc",
+                  "E:\\Downloads\\segacd-private-qa-cache\\sonic-cd-us-mode1-gaps-4e822010.sgcd",
+                  "--backup",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\0-A\\backup.brm",
+                  "--headless",
+                  "--frames",
+                  "1",
+                  "--mute",
+                  "--dump",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\0-A\\capture",
+                  "--wav",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\0-A\\audio.wav"
+                ],
+                "wall_seconds": 0.797293399926275,
+                "cpu_seconds": 0.46875,
+                "identity": {
+                  "artifacts": {
+                    "backup-ram.bin": "4390aad972163d9bbc8a8cd7d32e86b216e5a17a0d795c7d230942155e6a895b",
+                    "cram9.be16": "38723a2e5e8a17aa7950dc008209944e898f69a7bd10a23c839d341e935fd5ca",
+                    "frame.argb": "56adcbd9bc2cb40c511ce8ce244c5f2bbbce229216b0d8a9a87e86098eaa65ed",
+                    "main-ram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "sub-prg.bin": "07854d2fef297a06ba81685e660c332de36d5d18d546927d30daad6d7fda1541",
+                    "vdp-registers.bin": "0979ca3a159d45c7c513aa2af44cc5d9f279109826de2c94b1447a6f113af966",
+                    "vram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "vsram.be16": "5b6fb58e61fa475939767d68a446f97f1bff02c0e5935a3ea8bb51e6515783d8",
+                    "word-ram.bin": "8a39d2abd3999ab73c34db2476849cddf303ce389b35826850f9a700589b4a90",
+                    "z80-ram.bin": "203bb10870167a3cb0fe0610a5bb1feb7fe728fc99aa98f6137aac228fd3b180"
+                  },
+                  "audio": "a1da44bcdaaa9c5a1d69233f4830db4acc41dfd650d7d3c176714b56e70c45e2",
+                  "summary": [
+                    "Sonic CD frames=1 Subclock=208604 nativeMain=11665 nativeSub=0 nativeZ80=2791 floor=0/0 audioFaults=0 audioOutput=3733"
+                  ]
+                }
+              },
+              {
+                "arm": "A",
+                "binary_sha256": "d7f2793030e1bc0dd9a4b633c68dd56d113551f254f29af8c39de8da671069fb",
+                "command": [
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-retained-v12-baseline\\SonicCD.exe",
+                  "--bios",
+                  "F:\\Projects\\segagenesisrecomp\\_wt-sonic-cd\\build\\private-inputs\\segacd-bios-us-1.10.bin",
+                  "--disc",
+                  "E:\\Downloads\\segacd-private-qa-cache\\sonic-cd-us-mode1-gaps-4e822010.sgcd",
+                  "--backup",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\1-A\\backup.brm",
+                  "--headless",
+                  "--frames",
+                  "1",
+                  "--mute",
+                  "--dump",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\1-A\\capture",
+                  "--wav",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\1-A\\audio.wav"
+                ],
+                "wall_seconds": 0.5883740000426769,
+                "cpu_seconds": 0.421875,
+                "identity": {
+                  "artifacts": {
+                    "backup-ram.bin": "4390aad972163d9bbc8a8cd7d32e86b216e5a17a0d795c7d230942155e6a895b",
+                    "cram9.be16": "38723a2e5e8a17aa7950dc008209944e898f69a7bd10a23c839d341e935fd5ca",
+                    "frame.argb": "56adcbd9bc2cb40c511ce8ce244c5f2bbbce229216b0d8a9a87e86098eaa65ed",
+                    "main-ram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "sub-prg.bin": "07854d2fef297a06ba81685e660c332de36d5d18d546927d30daad6d7fda1541",
+                    "vdp-registers.bin": "0979ca3a159d45c7c513aa2af44cc5d9f279109826de2c94b1447a6f113af966",
+                    "vram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "vsram.be16": "5b6fb58e61fa475939767d68a446f97f1bff02c0e5935a3ea8bb51e6515783d8",
+                    "word-ram.bin": "8a39d2abd3999ab73c34db2476849cddf303ce389b35826850f9a700589b4a90",
+                    "z80-ram.bin": "203bb10870167a3cb0fe0610a5bb1feb7fe728fc99aa98f6137aac228fd3b180"
+                  },
+                  "audio": "a1da44bcdaaa9c5a1d69233f4830db4acc41dfd650d7d3c176714b56e70c45e2",
+                  "summary": [
+                    "Sonic CD frames=1 Subclock=208604 nativeMain=11665 nativeSub=0 nativeZ80=2791 floor=0/0 audioFaults=0 audioOutput=3733"
+                  ]
+                }
+              },
+              {
+                "arm": "A",
+                "binary_sha256": "d7f2793030e1bc0dd9a4b633c68dd56d113551f254f29af8c39de8da671069fb",
+                "command": [
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-retained-v12-baseline\\SonicCD.exe",
+                  "--bios",
+                  "F:\\Projects\\segagenesisrecomp\\_wt-sonic-cd\\build\\private-inputs\\segacd-bios-us-1.10.bin",
+                  "--disc",
+                  "E:\\Downloads\\segacd-private-qa-cache\\sonic-cd-us-mode1-gaps-4e822010.sgcd",
+                  "--backup",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\2-A\\backup.brm",
+                  "--headless",
+                  "--frames",
+                  "1",
+                  "--mute",
+                  "--dump",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\2-A\\capture",
+                  "--wav",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\2-A\\audio.wav"
+                ],
+                "wall_seconds": 0.6192496999865398,
+                "cpu_seconds": 0.46875,
+                "identity": {
+                  "artifacts": {
+                    "backup-ram.bin": "4390aad972163d9bbc8a8cd7d32e86b216e5a17a0d795c7d230942155e6a895b",
+                    "cram9.be16": "38723a2e5e8a17aa7950dc008209944e898f69a7bd10a23c839d341e935fd5ca",
+                    "frame.argb": "56adcbd9bc2cb40c511ce8ce244c5f2bbbce229216b0d8a9a87e86098eaa65ed",
+                    "main-ram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "sub-prg.bin": "07854d2fef297a06ba81685e660c332de36d5d18d546927d30daad6d7fda1541",
+                    "vdp-registers.bin": "0979ca3a159d45c7c513aa2af44cc5d9f279109826de2c94b1447a6f113af966",
+                    "vram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "vsram.be16": "5b6fb58e61fa475939767d68a446f97f1bff02c0e5935a3ea8bb51e6515783d8",
+                    "word-ram.bin": "8a39d2abd3999ab73c34db2476849cddf303ce389b35826850f9a700589b4a90",
+                    "z80-ram.bin": "203bb10870167a3cb0fe0610a5bb1feb7fe728fc99aa98f6137aac228fd3b180"
+                  },
+                  "audio": "a1da44bcdaaa9c5a1d69233f4830db4acc41dfd650d7d3c176714b56e70c45e2",
+                  "summary": [
+                    "Sonic CD frames=1 Subclock=208604 nativeMain=11665 nativeSub=0 nativeZ80=2791 floor=0/0 audioFaults=0 audioOutput=3733"
+                  ]
+                }
+              },
+              {
+                "arm": "B",
+                "binary_sha256": "aefcf32fcce2a6fae36a6c50c342d6afc6fd0619ade2f206441ddb5040b75915",
+                "command": [
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-windows\\runtime\\Release\\SonicCD.exe",
+                  "--bios",
+                  "F:\\Projects\\segagenesisrecomp\\_wt-sonic-cd\\build\\private-inputs\\segacd-bios-us-1.10.bin",
+                  "--disc",
+                  "E:\\Downloads\\segacd-private-qa-cache\\sonic-cd-us-mode1-gaps-4e822010.sgcd",
+                  "--backup",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\3-B\\backup.brm",
+                  "--headless",
+                  "--frames",
+                  "1",
+                  "--mute",
+                  "--dump",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\3-B\\capture",
+                  "--wav",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\3-B\\audio.wav"
+                ],
+                "wall_seconds": 0.5902401999337599,
+                "cpu_seconds": 0.421875,
+                "identity": {
+                  "artifacts": {
+                    "backup-ram.bin": "4390aad972163d9bbc8a8cd7d32e86b216e5a17a0d795c7d230942155e6a895b",
+                    "cram9.be16": "38723a2e5e8a17aa7950dc008209944e898f69a7bd10a23c839d341e935fd5ca",
+                    "frame.argb": "56adcbd9bc2cb40c511ce8ce244c5f2bbbce229216b0d8a9a87e86098eaa65ed",
+                    "main-ram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "sub-prg.bin": "07854d2fef297a06ba81685e660c332de36d5d18d546927d30daad6d7fda1541",
+                    "vdp-registers.bin": "0979ca3a159d45c7c513aa2af44cc5d9f279109826de2c94b1447a6f113af966",
+                    "vram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "vsram.be16": "5b6fb58e61fa475939767d68a446f97f1bff02c0e5935a3ea8bb51e6515783d8",
+                    "word-ram.bin": "8a39d2abd3999ab73c34db2476849cddf303ce389b35826850f9a700589b4a90",
+                    "z80-ram.bin": "203bb10870167a3cb0fe0610a5bb1feb7fe728fc99aa98f6137aac228fd3b180"
+                  },
+                  "audio": "a1da44bcdaaa9c5a1d69233f4830db4acc41dfd650d7d3c176714b56e70c45e2",
+                  "summary": [
+                    "Sonic CD frames=1 Subclock=208604 nativeMain=11665 nativeSub=0 nativeZ80=2791 floor=0/0 audioFaults=0 audioOutput=3733"
+                  ]
+                }
+              },
+              {
+                "arm": "B",
+                "binary_sha256": "aefcf32fcce2a6fae36a6c50c342d6afc6fd0619ade2f206441ddb5040b75915",
+                "command": [
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-windows\\runtime\\Release\\SonicCD.exe",
+                  "--bios",
+                  "F:\\Projects\\segagenesisrecomp\\_wt-sonic-cd\\build\\private-inputs\\segacd-bios-us-1.10.bin",
+                  "--disc",
+                  "E:\\Downloads\\segacd-private-qa-cache\\sonic-cd-us-mode1-gaps-4e822010.sgcd",
+                  "--backup",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\4-B\\backup.brm",
+                  "--headless",
+                  "--frames",
+                  "1",
+                  "--mute",
+                  "--dump",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\4-B\\capture",
+                  "--wav",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\4-B\\audio.wav"
+                ],
+                "wall_seconds": 0.6104293999960646,
+                "cpu_seconds": 0.4375,
+                "identity": {
+                  "artifacts": {
+                    "backup-ram.bin": "4390aad972163d9bbc8a8cd7d32e86b216e5a17a0d795c7d230942155e6a895b",
+                    "cram9.be16": "38723a2e5e8a17aa7950dc008209944e898f69a7bd10a23c839d341e935fd5ca",
+                    "frame.argb": "56adcbd9bc2cb40c511ce8ce244c5f2bbbce229216b0d8a9a87e86098eaa65ed",
+                    "main-ram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "sub-prg.bin": "07854d2fef297a06ba81685e660c332de36d5d18d546927d30daad6d7fda1541",
+                    "vdp-registers.bin": "0979ca3a159d45c7c513aa2af44cc5d9f279109826de2c94b1447a6f113af966",
+                    "vram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "vsram.be16": "5b6fb58e61fa475939767d68a446f97f1bff02c0e5935a3ea8bb51e6515783d8",
+                    "word-ram.bin": "8a39d2abd3999ab73c34db2476849cddf303ce389b35826850f9a700589b4a90",
+                    "z80-ram.bin": "203bb10870167a3cb0fe0610a5bb1feb7fe728fc99aa98f6137aac228fd3b180"
+                  },
+                  "audio": "a1da44bcdaaa9c5a1d69233f4830db4acc41dfd650d7d3c176714b56e70c45e2",
+                  "summary": [
+                    "Sonic CD frames=1 Subclock=208604 nativeMain=11665 nativeSub=0 nativeZ80=2791 floor=0/0 audioFaults=0 audioOutput=3733"
+                  ]
+                }
+              },
+              {
+                "arm": "A",
+                "binary_sha256": "d7f2793030e1bc0dd9a4b633c68dd56d113551f254f29af8c39de8da671069fb",
+                "command": [
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-retained-v12-baseline\\SonicCD.exe",
+                  "--bios",
+                  "F:\\Projects\\segagenesisrecomp\\_wt-sonic-cd\\build\\private-inputs\\segacd-bios-us-1.10.bin",
+                  "--disc",
+                  "E:\\Downloads\\segacd-private-qa-cache\\sonic-cd-us-mode1-gaps-4e822010.sgcd",
+                  "--backup",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\5-A\\backup.brm",
+                  "--headless",
+                  "--frames",
+                  "1",
+                  "--mute",
+                  "--dump",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\5-A\\capture",
+                  "--wav",
+                  "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\cd-catalog-startup-v12-windows\\5-A\\audio.wav"
+                ],
+                "wall_seconds": 0.6195250999880955,
+                "cpu_seconds": 0.515625,
+                "identity": {
+                  "artifacts": {
+                    "backup-ram.bin": "4390aad972163d9bbc8a8cd7d32e86b216e5a17a0d795c7d230942155e6a895b",
+                    "cram9.be16": "38723a2e5e8a17aa7950dc008209944e898f69a7bd10a23c839d341e935fd5ca",
+                    "frame.argb": "56adcbd9bc2cb40c511ce8ce244c5f2bbbce229216b0d8a9a87e86098eaa65ed",
+                    "main-ram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "sub-prg.bin": "07854d2fef297a06ba81685e660c332de36d5d18d546927d30daad6d7fda1541",
+                    "vdp-registers.bin": "0979ca3a159d45c7c513aa2af44cc5d9f279109826de2c94b1447a6f113af966",
+                    "vram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "vsram.be16": "5b6fb58e61fa475939767d68a446f97f1bff02c0e5935a3ea8bb51e6515783d8",
+                    "word-ram.bin": "8a39d2abd3999ab73c34db2476849cddf303ce389b35826850f9a700589b4a90",
+                    "z80-ram.bin": "203bb10870167a3cb0fe0610a5bb1feb7fe728fc99aa98f6137aac228fd3b180"
+                  },
+                  "audio": "a1da44bcdaaa9c5a1d69233f4830db4acc41dfd650d7d3c176714b56e70c45e2",
+                  "summary": [
+                    "Sonic CD frames=1 Subclock=208604 nativeMain=11665 nativeSub=0 nativeZ80=2791 floor=0/0 audioFaults=0 audioOutput=3733"
+                  ]
+                }
+              }
+            ],
+            "observed_reductions_pct": {
+              "wall_seconds": [
+                4.684620768231373,
+                1.4681729589657633
+              ],
+              "cpu_seconds": [
+                9.999999999999998,
+                15.151515151515149
+              ]
+            },
+            "AA_drift_pct": {
+              "wall_seconds": -26.203578243958457,
+              "cpu_seconds": -9.999999999999998
+            },
+            "correctness_passed": true
+          },
+          "linux": {
+            "schema": "GenesisCatalogStartup12",
+            "platform": "linux",
+            "baseline": {
+              "package": "retained-no-scope-baseline-catalog-v12",
+              "phase": "baseline",
+              "source": {
+                "engine": "9e675dcf51299044baa4c07017049a2cc9fce7ee",
+                "clean": true,
+                "runtime_core": "53fc7b417d5c194a5ebdf8d623c1c4501226eb60"
+              },
+              "consumer": {
+                "head": "f1b5824ef77369e42283a53d433d2b2666bc7521"
+              },
+              "binary": "/tmp/genesis-engine-cd-raster-20261028/candidate-retained-v12-baseline/SonicCD",
+              "sha256": "7415f5470b0b7e188b80c6443fd8430e1b1f2cf73781eb1d7278b7614352b75c",
+              "bytes": 544293880,
+              "runtime_core": "53fc7b417d5c194a5ebdf8d623c1c4501226eb60",
+              "generator_core": "7233852a6e45d8779b9dae8b29afd6b94d5231dc",
+              "native_archive": "Qualified unchanged generated operation archive; original metadata selected only in baseline",
+              "compaction_receipt": null
+            },
+            "candidate": {
+              "package": "retained-no-scope-compact-catalog-v12",
+              "phase": "compact",
+              "source": {
+                "engine": "45b48050b28c74ad09c269bdccf1859dbd8c7126",
+                "clean": true,
+                "runtime_core": "53fc7b417d5c194a5ebdf8d623c1c4501226eb60"
+              },
+              "consumer": {
+                "head": "f1b5824ef77369e42283a53d433d2b2666bc7521"
+              },
+              "binary": "/tmp/genesis-engine-cd-raster-20261028/candidate/runtime/SonicCD",
+              "sha256": "b31e7d743f1d06a2577ec49d36199ef2a3ccf0d65347b9aec9cd5f98d3e7175c",
+              "bytes": 489968336,
+              "runtime_core": "53fc7b417d5c194a5ebdf8d623c1c4501226eb60",
+              "generator_core": "7233852a6e45d8779b9dae8b29afd6b94d5231dc",
+              "native_archive": "Qualified unchanged generated operation archive; original metadata selected only in baseline",
+              "compaction_receipt": "/mnt/g/Temp/Codex/genesis-engine-burndown-20261027/cd-compact-generation-receipt-v12.json"
+            },
+            "scope": "Six warm-cache full-launch observations through one native frame and complete media validation; shared host, not quiet-host qualification. No shader/emulated-delay or verification bypass.",
+            "samples": [
+              {
+                "arm": "A",
+                "binary_sha256": "7415f5470b0b7e188b80c6443fd8430e1b1f2cf73781eb1d7278b7614352b75c",
+                "command": [
+                  "/tmp/genesis-engine-cd-raster-20261028/candidate-retained-v12-baseline/SonicCD",
+                  "--bios",
+                  "/mnt/f/Projects/segagenesisrecomp/_wt-sonic-cd/build/private-inputs/segacd-bios-us-1.10.bin",
+                  "--disc",
+                  "/mnt/e/Downloads/segacd-private-qa-cache/sonic-cd-us-mode1-gaps-4e822010.sgcd",
+                  "--backup",
+                  "/tmp/genesis-engine-catalog-startup-v12/0-A/backup.brm",
+                  "--headless",
+                  "--frames",
+                  "1",
+                  "--mute",
+                  "--dump",
+                  "/tmp/genesis-engine-catalog-startup-v12/0-A/capture",
+                  "--wav",
+                  "/tmp/genesis-engine-catalog-startup-v12/0-A/audio.wav"
+                ],
+                "wall_seconds": 12.404829442035407,
+                "cpu_seconds": 2.340163,
+                "identity": {
+                  "artifacts": {
+                    "vsram.be16": "5b6fb58e61fa475939767d68a446f97f1bff02c0e5935a3ea8bb51e6515783d8",
+                    "word-ram.bin": "8a39d2abd3999ab73c34db2476849cddf303ce389b35826850f9a700589b4a90",
+                    "vdp-registers.bin": "0979ca3a159d45c7c513aa2af44cc5d9f279109826de2c94b1447a6f113af966",
+                    "vram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "z80-ram.bin": "203bb10870167a3cb0fe0610a5bb1feb7fe728fc99aa98f6137aac228fd3b180",
+                    "main-ram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "cram9.be16": "38723a2e5e8a17aa7950dc008209944e898f69a7bd10a23c839d341e935fd5ca",
+                    "sub-prg.bin": "07854d2fef297a06ba81685e660c332de36d5d18d546927d30daad6d7fda1541",
+                    "frame.argb": "56adcbd9bc2cb40c511ce8ce244c5f2bbbce229216b0d8a9a87e86098eaa65ed",
+                    "backup-ram.bin": "4390aad972163d9bbc8a8cd7d32e86b216e5a17a0d795c7d230942155e6a895b"
+                  },
+                  "audio": "a1da44bcdaaa9c5a1d69233f4830db4acc41dfd650d7d3c176714b56e70c45e2",
+                  "summary": [
+                    "Sonic CD frames=1 Subclock=208604 nativeMain=11665 nativeSub=0 nativeZ80=2791 floor=0/0 audioFaults=0 audioOutput=3733"
+                  ]
+                }
+              },
+              {
+                "arm": "A",
+                "binary_sha256": "7415f5470b0b7e188b80c6443fd8430e1b1f2cf73781eb1d7278b7614352b75c",
+                "command": [
+                  "/tmp/genesis-engine-cd-raster-20261028/candidate-retained-v12-baseline/SonicCD",
+                  "--bios",
+                  "/mnt/f/Projects/segagenesisrecomp/_wt-sonic-cd/build/private-inputs/segacd-bios-us-1.10.bin",
+                  "--disc",
+                  "/mnt/e/Downloads/segacd-private-qa-cache/sonic-cd-us-mode1-gaps-4e822010.sgcd",
+                  "--backup",
+                  "/tmp/genesis-engine-catalog-startup-v12/1-A/backup.brm",
+                  "--headless",
+                  "--frames",
+                  "1",
+                  "--mute",
+                  "--dump",
+                  "/tmp/genesis-engine-catalog-startup-v12/1-A/capture",
+                  "--wav",
+                  "/tmp/genesis-engine-catalog-startup-v12/1-A/audio.wav"
+                ],
+                "wall_seconds": 11.454063895042054,
+                "cpu_seconds": 2.293554,
+                "identity": {
+                  "artifacts": {
+                    "vsram.be16": "5b6fb58e61fa475939767d68a446f97f1bff02c0e5935a3ea8bb51e6515783d8",
+                    "word-ram.bin": "8a39d2abd3999ab73c34db2476849cddf303ce389b35826850f9a700589b4a90",
+                    "vdp-registers.bin": "0979ca3a159d45c7c513aa2af44cc5d9f279109826de2c94b1447a6f113af966",
+                    "vram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "z80-ram.bin": "203bb10870167a3cb0fe0610a5bb1feb7fe728fc99aa98f6137aac228fd3b180",
+                    "main-ram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "cram9.be16": "38723a2e5e8a17aa7950dc008209944e898f69a7bd10a23c839d341e935fd5ca",
+                    "sub-prg.bin": "07854d2fef297a06ba81685e660c332de36d5d18d546927d30daad6d7fda1541",
+                    "frame.argb": "56adcbd9bc2cb40c511ce8ce244c5f2bbbce229216b0d8a9a87e86098eaa65ed",
+                    "backup-ram.bin": "4390aad972163d9bbc8a8cd7d32e86b216e5a17a0d795c7d230942155e6a895b"
+                  },
+                  "audio": "a1da44bcdaaa9c5a1d69233f4830db4acc41dfd650d7d3c176714b56e70c45e2",
+                  "summary": [
+                    "Sonic CD frames=1 Subclock=208604 nativeMain=11665 nativeSub=0 nativeZ80=2791 floor=0/0 audioFaults=0 audioOutput=3733"
+                  ]
+                }
+              },
+              {
+                "arm": "A",
+                "binary_sha256": "7415f5470b0b7e188b80c6443fd8430e1b1f2cf73781eb1d7278b7614352b75c",
+                "command": [
+                  "/tmp/genesis-engine-cd-raster-20261028/candidate-retained-v12-baseline/SonicCD",
+                  "--bios",
+                  "/mnt/f/Projects/segagenesisrecomp/_wt-sonic-cd/build/private-inputs/segacd-bios-us-1.10.bin",
+                  "--disc",
+                  "/mnt/e/Downloads/segacd-private-qa-cache/sonic-cd-us-mode1-gaps-4e822010.sgcd",
+                  "--backup",
+                  "/tmp/genesis-engine-catalog-startup-v12/2-A/backup.brm",
+                  "--headless",
+                  "--frames",
+                  "1",
+                  "--mute",
+                  "--dump",
+                  "/tmp/genesis-engine-catalog-startup-v12/2-A/capture",
+                  "--wav",
+                  "/tmp/genesis-engine-catalog-startup-v12/2-A/audio.wav"
+                ],
+                "wall_seconds": 11.386248516966589,
+                "cpu_seconds": 2.1930259999999997,
+                "identity": {
+                  "artifacts": {
+                    "vsram.be16": "5b6fb58e61fa475939767d68a446f97f1bff02c0e5935a3ea8bb51e6515783d8",
+                    "word-ram.bin": "8a39d2abd3999ab73c34db2476849cddf303ce389b35826850f9a700589b4a90",
+                    "vdp-registers.bin": "0979ca3a159d45c7c513aa2af44cc5d9f279109826de2c94b1447a6f113af966",
+                    "vram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "z80-ram.bin": "203bb10870167a3cb0fe0610a5bb1feb7fe728fc99aa98f6137aac228fd3b180",
+                    "main-ram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "cram9.be16": "38723a2e5e8a17aa7950dc008209944e898f69a7bd10a23c839d341e935fd5ca",
+                    "sub-prg.bin": "07854d2fef297a06ba81685e660c332de36d5d18d546927d30daad6d7fda1541",
+                    "frame.argb": "56adcbd9bc2cb40c511ce8ce244c5f2bbbce229216b0d8a9a87e86098eaa65ed",
+                    "backup-ram.bin": "4390aad972163d9bbc8a8cd7d32e86b216e5a17a0d795c7d230942155e6a895b"
+                  },
+                  "audio": "a1da44bcdaaa9c5a1d69233f4830db4acc41dfd650d7d3c176714b56e70c45e2",
+                  "summary": [
+                    "Sonic CD frames=1 Subclock=208604 nativeMain=11665 nativeSub=0 nativeZ80=2791 floor=0/0 audioFaults=0 audioOutput=3733"
+                  ]
+                }
+              },
+              {
+                "arm": "B",
+                "binary_sha256": "b31e7d743f1d06a2577ec49d36199ef2a3ccf0d65347b9aec9cd5f98d3e7175c",
+                "command": [
+                  "/tmp/genesis-engine-cd-raster-20261028/candidate/runtime/SonicCD",
+                  "--bios",
+                  "/mnt/f/Projects/segagenesisrecomp/_wt-sonic-cd/build/private-inputs/segacd-bios-us-1.10.bin",
+                  "--disc",
+                  "/mnt/e/Downloads/segacd-private-qa-cache/sonic-cd-us-mode1-gaps-4e822010.sgcd",
+                  "--backup",
+                  "/tmp/genesis-engine-catalog-startup-v12/3-B/backup.brm",
+                  "--headless",
+                  "--frames",
+                  "1",
+                  "--mute",
+                  "--dump",
+                  "/tmp/genesis-engine-catalog-startup-v12/3-B/capture",
+                  "--wav",
+                  "/tmp/genesis-engine-catalog-startup-v12/3-B/audio.wav"
+                ],
+                "wall_seconds": 11.429522686987184,
+                "cpu_seconds": 2.233192,
+                "identity": {
+                  "artifacts": {
+                    "vsram.be16": "5b6fb58e61fa475939767d68a446f97f1bff02c0e5935a3ea8bb51e6515783d8",
+                    "word-ram.bin": "8a39d2abd3999ab73c34db2476849cddf303ce389b35826850f9a700589b4a90",
+                    "vdp-registers.bin": "0979ca3a159d45c7c513aa2af44cc5d9f279109826de2c94b1447a6f113af966",
+                    "vram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "z80-ram.bin": "203bb10870167a3cb0fe0610a5bb1feb7fe728fc99aa98f6137aac228fd3b180",
+                    "main-ram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "cram9.be16": "38723a2e5e8a17aa7950dc008209944e898f69a7bd10a23c839d341e935fd5ca",
+                    "sub-prg.bin": "07854d2fef297a06ba81685e660c332de36d5d18d546927d30daad6d7fda1541",
+                    "frame.argb": "56adcbd9bc2cb40c511ce8ce244c5f2bbbce229216b0d8a9a87e86098eaa65ed",
+                    "backup-ram.bin": "4390aad972163d9bbc8a8cd7d32e86b216e5a17a0d795c7d230942155e6a895b"
+                  },
+                  "audio": "a1da44bcdaaa9c5a1d69233f4830db4acc41dfd650d7d3c176714b56e70c45e2",
+                  "summary": [
+                    "Sonic CD frames=1 Subclock=208604 nativeMain=11665 nativeSub=0 nativeZ80=2791 floor=0/0 audioFaults=0 audioOutput=3733"
+                  ]
+                }
+              },
+              {
+                "arm": "B",
+                "binary_sha256": "b31e7d743f1d06a2577ec49d36199ef2a3ccf0d65347b9aec9cd5f98d3e7175c",
+                "command": [
+                  "/tmp/genesis-engine-cd-raster-20261028/candidate/runtime/SonicCD",
+                  "--bios",
+                  "/mnt/f/Projects/segagenesisrecomp/_wt-sonic-cd/build/private-inputs/segacd-bios-us-1.10.bin",
+                  "--disc",
+                  "/mnt/e/Downloads/segacd-private-qa-cache/sonic-cd-us-mode1-gaps-4e822010.sgcd",
+                  "--backup",
+                  "/tmp/genesis-engine-catalog-startup-v12/4-B/backup.brm",
+                  "--headless",
+                  "--frames",
+                  "1",
+                  "--mute",
+                  "--dump",
+                  "/tmp/genesis-engine-catalog-startup-v12/4-B/capture",
+                  "--wav",
+                  "/tmp/genesis-engine-catalog-startup-v12/4-B/audio.wav"
+                ],
+                "wall_seconds": 11.470935101970099,
+                "cpu_seconds": 2.182716000000001,
+                "identity": {
+                  "artifacts": {
+                    "vsram.be16": "5b6fb58e61fa475939767d68a446f97f1bff02c0e5935a3ea8bb51e6515783d8",
+                    "word-ram.bin": "8a39d2abd3999ab73c34db2476849cddf303ce389b35826850f9a700589b4a90",
+                    "vdp-registers.bin": "0979ca3a159d45c7c513aa2af44cc5d9f279109826de2c94b1447a6f113af966",
+                    "vram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "z80-ram.bin": "203bb10870167a3cb0fe0610a5bb1feb7fe728fc99aa98f6137aac228fd3b180",
+                    "main-ram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "cram9.be16": "38723a2e5e8a17aa7950dc008209944e898f69a7bd10a23c839d341e935fd5ca",
+                    "sub-prg.bin": "07854d2fef297a06ba81685e660c332de36d5d18d546927d30daad6d7fda1541",
+                    "frame.argb": "56adcbd9bc2cb40c511ce8ce244c5f2bbbce229216b0d8a9a87e86098eaa65ed",
+                    "backup-ram.bin": "4390aad972163d9bbc8a8cd7d32e86b216e5a17a0d795c7d230942155e6a895b"
+                  },
+                  "audio": "a1da44bcdaaa9c5a1d69233f4830db4acc41dfd650d7d3c176714b56e70c45e2",
+                  "summary": [
+                    "Sonic CD frames=1 Subclock=208604 nativeMain=11665 nativeSub=0 nativeZ80=2791 floor=0/0 audioFaults=0 audioOutput=3733"
+                  ]
+                }
+              },
+              {
+                "arm": "A",
+                "binary_sha256": "7415f5470b0b7e188b80c6443fd8430e1b1f2cf73781eb1d7278b7614352b75c",
+                "command": [
+                  "/tmp/genesis-engine-cd-raster-20261028/candidate-retained-v12-baseline/SonicCD",
+                  "--bios",
+                  "/mnt/f/Projects/segagenesisrecomp/_wt-sonic-cd/build/private-inputs/segacd-bios-us-1.10.bin",
+                  "--disc",
+                  "/mnt/e/Downloads/segacd-private-qa-cache/sonic-cd-us-mode1-gaps-4e822010.sgcd",
+                  "--backup",
+                  "/tmp/genesis-engine-catalog-startup-v12/5-A/backup.brm",
+                  "--headless",
+                  "--frames",
+                  "1",
+                  "--mute",
+                  "--dump",
+                  "/tmp/genesis-engine-catalog-startup-v12/5-A/capture",
+                  "--wav",
+                  "/tmp/genesis-engine-catalog-startup-v12/5-A/audio.wav"
+                ],
+                "wall_seconds": 11.73342083801981,
+                "cpu_seconds": 2.2471370000000004,
+                "identity": {
+                  "artifacts": {
+                    "vsram.be16": "5b6fb58e61fa475939767d68a446f97f1bff02c0e5935a3ea8bb51e6515783d8",
+                    "word-ram.bin": "8a39d2abd3999ab73c34db2476849cddf303ce389b35826850f9a700589b4a90",
+                    "vdp-registers.bin": "0979ca3a159d45c7c513aa2af44cc5d9f279109826de2c94b1447a6f113af966",
+                    "vram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "z80-ram.bin": "203bb10870167a3cb0fe0610a5bb1feb7fe728fc99aa98f6137aac228fd3b180",
+                    "main-ram.bin": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+                    "cram9.be16": "38723a2e5e8a17aa7950dc008209944e898f69a7bd10a23c839d341e935fd5ca",
+                    "sub-prg.bin": "07854d2fef297a06ba81685e660c332de36d5d18d546927d30daad6d7fda1541",
+                    "frame.argb": "56adcbd9bc2cb40c511ce8ce244c5f2bbbce229216b0d8a9a87e86098eaa65ed",
+                    "backup-ram.bin": "4390aad972163d9bbc8a8cd7d32e86b216e5a17a0d795c7d230942155e6a895b"
+                  },
+                  "audio": "a1da44bcdaaa9c5a1d69233f4830db4acc41dfd650d7d3c176714b56e70c45e2",
+                  "summary": [
+                    "Sonic CD frames=1 Subclock=208604 nativeMain=11665 nativeSub=0 nativeZ80=2791 floor=0/0 audioFaults=0 audioOutput=3733"
+                  ]
+                }
+              }
+            ],
+            "observed_reductions_pct": {
+              "wall_seconds": [
+                -0.38005643347862605,
+                2.2370776576868256
+              ],
+              "cpu_seconds": [
+                -1.8315332330761214,
+                2.8668034036197776
+              ]
+            },
+            "AA_drift_pct": {
+              "wall_seconds": -7.664478995346425,
+              "cpu_seconds": -1.9916988688394865
+            },
+            "correctness_passed": true
+          }
+        }
+      }
+    }
+  ],
+  "owner_review": {
+    "launcher": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\owner-review\\Review.cmd",
+    "manifest": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\owner-review\\review-manifest.json",
+    "notes": "G:\\Temp\\Codex\\genesis-engine-burndown-20261027\\owner-review\\review-notes.json",
+    "status": "approved for merge and release on2026-10-28",
+    "normal_window_audio": true,
+    "saves": "isolated profiles and native-save copies; owner files untouched"
+  },
+  "owner_acceptance": {
+    "utc": "2026-10-28T16:07:14.859061+00:00",
+    "verdict": "approved_for_merge_and_release",
+    "sonic_cd": "Explicit owner pass; no repeated visual check",
+    "rka": "Explicit candidate pass after direct old/new recheck; owner calls prior castle sighting a fluke",
+    "sonic1": "Earlier cleared game remains accepted",
+    "castle_followup": "beads-h7ot closed after owner recheck; no reproducible defect or fix claimed",
+    "notes": "G:/Temp/Codex/genesis-engine-burndown-20261027/owner-review/review-notes.json",
+    "core_landed": "53fc7b417d5c194a5ebdf8d623c1c4501226eb60 on m68k-recomp-core/main"
+  }
+}

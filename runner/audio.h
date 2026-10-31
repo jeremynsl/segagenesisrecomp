@@ -24,6 +24,16 @@ void audio_set_playback_enabled(int enabled);
 /* Discard device/DRC samples from the timeline abandoned by a quickload. */
 void audio_discard_playback(void);
 
+/* Optional game-owned source, mixed once per emulated frame at the internal
+ * rate, before WAV capture, master volume and delivery. Add saturating stereo
+ * samples in place. Registration, replacement and unregistration (NULL) run
+ * on the emulation thread, never the SDL callback. The game owns source state
+ * and must reset it on game reset/scene changes and unregister before freeing
+ * it. audio_close also unregisters. A NULL source leaves base audio unchanged.
+ * This API alone does not qualify extra host state for quickstates or netplay. */
+typedef void (*AudioExtraSource)(int16_t *mix_stereo, size_t frames, double rate);
+void audio_set_extra_source(AudioExtraSource source);
+
 /*
  * Mix one video frame and push to the SDL ring buffer.
  *
@@ -70,6 +80,16 @@ typedef struct {
 void audio_get_stats(AudioStats *out);
 /* End-of-run measurement: bounded delivery ring input and overflow drops. */
 void audio_get_bridge_counts(uint64_t *pushed, uint64_t *overflow_drops);
+/* Main-thread snapshot captured under the existing device lock at flush.
+ * Reading it adds no callback lock, I/O or guest-state dependency. */
+typedef struct {
+    uint64_t conceal_events;
+    uint64_t concealed_frames;
+    uint32_t lock_us;
+    uint32_t callback_us;
+    uint32_t fill_us;
+} AudioHostTiming;
+void audio_get_host_timing(AudioHostTiming *out);
 uint32_t audio_queued_bytes(void);
 
 /*

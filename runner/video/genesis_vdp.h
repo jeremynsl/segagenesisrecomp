@@ -135,6 +135,32 @@ void gvdp_set_host_sprites(GVDPHostSprites draw, void *user);
  * No guest CRAM, machine state or color callbacks are changed. Unregistering
  * the host sprite callback clears these colors too. Returns 0 for oversize. */
 int gvdp_set_host_palette(const uint32_t *argb, unsigned count);
+
+/* Extended sprite lines (opt-in, presentation only): sprite pixels drawn with
+ * CRAM line 0 from VRAM tiles flagged in `tile_lines` (2048 entries: 0 = none,
+ * 1..GVDP_EXT_LINES = extra line) take their colour from up to three extra
+ * 16-colour lines instead of CRAM, written as host palette indices. Colours
+ * are 9-bit CRAM words in two sets: rows above `split_row` use `top`, rows at
+ * or below it `bottom` (a water line). NULL tile_lines turns it off. */
+#define GVDP_EXT_LINES 3
+void gvdp_set_ext_tiles(const uint8_t *tile_lines);
+void gvdp_set_ext_colors(const uint16_t *top, const uint16_t *bottom, int split_row);
+int gvdp_ext_line(unsigned tile);                     /* 0 or 1..GVDP_EXT_LINES */
+uint16_t gvdp_ext_color(int row, int line, int nib); /* 9-bit colour for a row */
+int gvdp_ext_active(void);
+/* Optional immutable sprite-pattern bank. Marked SAT pieces (size byte bit
+ * 7, unused by hardware) read these tiles; unmarked sprites and every plane
+ * always use guest VRAM. NULL disables it. The caller owns both buffers.
+ * Game adapters must mask the marker before any guest size-table lookup.
+ * Host pointers are presentation state, never part of serialized GVDP. */
+int gvdp_set_sprite_patterns(const uint8_t *patterns, unsigned bytes,
+                             const uint8_t *tile_lines);
+/* Size bit 6 selects bank 1 for an independently owned sprite strip.
+ * Bank 0 remains the default selected by the original setter. */
+int gvdp_set_sprite_patterns_bank(unsigned bank, const uint8_t *patterns,
+                                  unsigned bytes, const uint8_t *tile_lines);
+const uint8_t *gvdp_sprite_patterns(unsigned size_flags, unsigned *bytes);
+int gvdp_sprite_pattern_line(unsigned size_flags, unsigned tile);
 /* Read-only color table for index-to-ARGB sinks; NULL when disabled. */
 const uint32_t *gvdp_host_palette(void);
 
@@ -242,6 +268,25 @@ int gvdp_render_scanline(GVDP *v, int line, uint8_t *out);
 /* 1 if any VDP access happened on active lines after line 0 since the last
  * call; clears the flag. Such a frame differs from an end-of-frame snapshot. */
 int gvdp_take_raster_write(void);
+/* Owned raster input, independent of live VRAM, palettes and global sprite
+ * scratch after capture. Device-visible sprite evaluation occurs at capture;
+ * image composition can be deferred or omitted. This is presentation data,
+ * not serialized hardware state. Unsupported presentation extensions return
+ * zero BEFORE device mutation and retain the ordinary renderer. */
+typedef struct GVDPRasterRow {
+    unsigned width, start, count, diag_offset, diag_mask;
+    uint8_t backdrop, bar, display, shadow_mode, diagnostic;
+    uint8_t plane_a[GVDP_MAX_WIDTH], plane_b[GVDP_MAX_WIDTH];
+    uint8_t sprite[GVDP_MAX_WIDTH], opaque[GVDP_MAX_WIDTH], high[GVDP_MAX_WIDTH];
+    uint8_t shadow_op[GVDP_MAX_WIDTH], hilite_op[GVDP_MAX_WIDTH];
+} GVDPRasterRow;
+int gvdp_capture_scanline(GVDP *v, int line, GVDPRasterRow *row);
+int gvdp_compose_captured(const GVDPRasterRow *row, uint8_t *out);
+/* Run the guest-visible sprite evaluation for a discarded output row. Uses
+ * exactly the renderer's sprite limits, pattern reads and collision rules;
+ * background fetch/composition and host drawing have no device side effects.
+ * `line` is an output row, including both rows of interlace mode 2. */
+void gvdp_evaluate_scanline(GVDP *v, int line);
 const char *gvdp_plane_implementation(void);
 
 /* ---- Per-frame raster timing ---------------------------------------------- */

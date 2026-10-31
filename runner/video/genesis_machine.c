@@ -469,7 +469,35 @@ static void step_z80(GenesisMachine *m, uint32_t target)
 #endif
 }
 
-void machine_run_frame(GenesisScanlineSink sink, void *user)
+typedef struct NativeRowContext {
+    GVDP *vdp;
+    int line, width, ready;
+    uint8_t *indices;
+    uint32_t *pixels;
+} NativeRowContext;
+
+static const uint32_t *native_row_fetch(void *ctx)
+{
+    NativeRowContext *r = (NativeRowContext *)ctx;
+    if (!r->ready) {
+        r->width = gvdp_render_scanline(r->vdp, r->line, r->indices);
+        const uint32_t *host_palette = gvdp_host_palette();
+        if (host_palette)
+            memcpy(s_cram_argb + GVDP_HOST_PALETTE_BASE, host_palette,
+                   GVDP_HOST_PALETTE_SIZE * sizeof(uint32_t));
+        else if (gvdp_ext_active())
+            for (int k = 0; k < GVDP_EXT_LINES * 16; k++)
+                s_cram_argb[GVDP_HOST_PALETTE_BASE + k] =
+                    bgr9_to_argb(gvdp_ext_color(r->line, 1 + k / 16, k % 16), 0);
+        for (int x = 0; x < r->width; x++)
+            r->pixels[x] = s_cram_argb[r->indices[x]];
+        r->ready = 1;
+    }
+    return r->pixels;
+}
+
+void machine_run_frame_ex(GenesisScanlineSink sink, void *user,
+                          const GenesisScanlineProducer *producer)
 {
     GenesisMachine *m = &g_machine;
     int active_h = gvdp_screen_height(&m->vdp);
@@ -532,22 +560,31 @@ void machine_run_frame(GenesisScanlineSink sink, void *user)
         /* Rendering is NOT presentation-only: sprite evaluation sets the
          * status register's sprite-overflow and sprite-collision flags, which
          * the 68K reads. A NULL sink (a rollback replay) therefore still
-         * renders every line into the index buffer and only skips the ARGB
-         * conversion and the sink (found by the determinism probe,
+         * evaluates sprites on every line. Background fetch/composition and
+         * host drawing have no guest-visible side effects and can be omitted
+         * when no output is requested (found by the determinism probe,
          * 2026-09-25: replays without rendering forked in the vdp partition
          * in 1-2 of 691 dense probe passes per game). */
         if (line < active_h) {
             int dbl = gvdp_interlace_double(&m->vdp);
             for (int sub = 0; sub <= dbl; sub++) {
                 int row = (line << dbl) + sub;
-                int n = gvdp_render_scanline(&m->vdp, row, idxbuf);
-                if (!sink) continue;
-                const uint32_t *host_palette = gvdp_host_palette();
-                if (host_palette)
-                    memcpy(s_cram_argb + GVDP_HOST_PALETTE_BASE, host_palette,
-                           GVDP_HOST_PALETTE_SIZE * sizeof(uint32_t));
-                for (int x = 0; x < n; x++) rowbuf[x] = s_cram_argb[idxbuf[x]];
-                sink(user, row, rowbuf, n);
+                if (!sink) {
+                    gvdp_evaluate_scanline(&m->vdp, row);
+                    continue;
+                }
+                NativeRowContext native = { &m->vdp, row, 0, 0, idxbuf, rowbuf };
+                if (producer && producer->enabled(user)) {
+                    /* Status remains hardware-owned even when the original
+                     * image is unused. A lazy fallback re-evaluates the same
+                     * row; collision/overflow are sticky, not counters. */
+                    gvdp_evaluate_scanline(&m->vdp, row);
+                    producer->render(user, &m->vdp, row, gvdp_active_width(&m->vdp),
+                                     native_row_fetch, &native);
+                } else {
+                    const uint32_t *pixels = native_row_fetch(&native);
+                    sink(user, row, pixels, native.width);
+                }
             }
         }
         if (sink && line == active_h - 1) hirate_capture(&m->vdp, s_cram_argb);
@@ -555,4 +592,9 @@ void machine_run_frame(GenesisScanlineSink sink, void *user)
         m->master_cycle += MASTER_PER_LINE;
     }
     g_snd_frame++;   /* [SND-TRACE] */
+}
+
+void machine_run_frame(GenesisScanlineSink sink, void *user)
+{
+    machine_run_frame_ex(sink, user, NULL);
 }

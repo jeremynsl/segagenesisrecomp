@@ -7,11 +7,14 @@
  * genesis_machine.c).
  */
 #include "genesis_bus.h"
+#include "genesis_expansion.h"
 #include "../audio/event_queue.h"
 #include <string.h>
 
 /* Recompiled 68K memory. */
 extern uint8_t g_rom[0x400000];
+extern uint8_t *g_rom_ext;        /* opt-in expansion ROM at $400000 */
+extern uint32_t g_rom_ext_size;   /* bytes; 0 = none (default) */
 extern uint8_t g_ram[0x010000];
 
 /* Audio write stamps (master cycles since wall-frame start; see
@@ -111,8 +114,8 @@ static void ym_write_side_effect(GenesisBus *b, uint8_t port, uint8_t val,
         /* Bits 4/5 clear timer A/B flags; bit 1 loads/runs timer B; bit 3
          * enables its overflow flag. RKA writes $3C (clear/stop), updates
          * $26, then writes $3A (clear/load/run). */
-        if (val & 0x10u) b->ym_status &= (uint8_t)~0x01u;
-        if (val & 0x20u) b->ym_status &= (uint8_t)~0x02u;
+        if (val & 0x10u) b->ym_status &= 0xfeu;
+        if (val & 0x20u) b->ym_status &= 0xfdu;
         b->ym_mode = val;
         if (val & 0x02u) {
             if (b->ym_timer_b_period == 0)
@@ -299,6 +302,8 @@ uint16_t gbus_read16(GenesisBus *b, uint32_t a)
     }
     if (a < 0x400000u)
         return (uint16_t)((g_rom[a] << 8) | g_rom[a + 1]);          /* ROM     */
+    uint16_t expansion;
+    if (gbus_expansion_word(a, &expansion)) return expansion;
     if (a >= 0xFF0000u) {                                            /* RAM     */
         uint16_t o = (uint16_t)(a & 0xFFFFu);
         return (uint16_t)((g_ram[o] << 8) | g_ram[(uint16_t)(o + 1)]);
@@ -347,6 +352,8 @@ uint16_t gbus_peek16(const GenesisBus *b, uint32_t a)
     }
     if (a < 0x400000u)
         return (uint16_t)((g_rom[a] << 8) | g_rom[a + 1]);
+    uint16_t expansion;
+    if (gbus_expansion_word(a, &expansion)) return expansion;
     if (a >= 0xFF0000u) {
         uint16_t o = (uint16_t)(a & 0xFFFFu);
         return (uint16_t)((g_ram[o] << 8) | g_ram[(uint16_t)(o + 1)]);

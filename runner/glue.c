@@ -63,6 +63,10 @@ void recomp_push_return(uint32_t ret_addr)
 
 M68KState g_cpu;
 uint8_t   g_rom[0x400000];   /* 4 MB ROM shadow — ROM bytes (big-endian, byte-addressed) */
+/* Opt-in expansion ROM mapped at $400000-$7FFFFF (game-owned buffer, even
+ * size, at most 4 MB). Default none: the region keeps its open-bus behavior. */
+uint8_t  *g_rom_ext      = NULL;
+uint32_t  g_rom_ext_size = 0;
 uint8_t   g_ram[0x10000];    /* 64 KB work RAM shadow (not authoritative in Step 2) */
 int       g_ws_margin = 0;   /* widescreen extra px/side (set per-frame by main.c gate; 0 = 4:3) */
 
@@ -1658,6 +1662,11 @@ uint16_t m68k_read16(uint32_t byte_addr)
     byte_addr &= 0xFFFFFFu;
     watchdog_check(byte_addr, 0, 0);
     bus_ring_push(byte_addr, 1);
+    if (byte_addr == 0xA11100u) {
+        uint16_t ack = gbus_read16(&g_machine.bus, byte_addr);
+        HYBRID_BUMP_CYCLES();
+        return ack;
+    }
     spin_check(byte_addr, 0);
     HYBRID_BUMP_CYCLES();
     return gbus_read16(&g_machine.bus, byte_addr);
@@ -1680,8 +1689,20 @@ uint8_t m68k_read8(uint32_t byte_addr)
     byte_addr &= 0xFFFFFFu;
     watchdog_check(byte_addr, 0, 0);
     bus_ring_push(byte_addr, 0);
-    /* Z80 sync polls — the SMPS sound driver and Z80 bus arbiter both
-     * require the Z80 to actually advance before responding. In native
+    /* This bus model grants BUSREQ synchronously in gbus_write16. Latch
+     * its acknowledgement before any scheduler yield. Unconditionally
+     * yielding here let a lag-frame V-int do its own stop/startZ80, release
+     * the main loop's request, and strand Play_Music/Play_SFX in their wait
+     * forever. Z80 RAM ready flags below still need the Z80 to advance. */
+    if (byte_addr == 0xA11100u) {
+        uint8_t ack = (uint8_t)(gbus_read16(&g_machine.bus, byte_addr) >> 8);
+        s_z80poll_last_addr = 0;
+        s_z80poll_streak = 0;
+        HYBRID_BUMP_CYCLES();
+        return ack;
+    }
+    /* Z80 RAM sync polls — the SMPS sound driver must actually advance
+     * before changing its ready flags. In native
      * mode the game fiber can run thousands of instructions without
      * yielding, so Z80 never gets cycles inside a polling loop.
      *
@@ -1696,7 +1717,7 @@ uint8_t m68k_read8(uint32_t byte_addr)
      * Bounded fallback: if a single read polls > 256 times without
      * resolving (corrupted Z80 state, dead driver), return 0 so we
      * don't hang. Counter resets across distinct read addresses. */
-    if (byte_addr == 0xA01FFDu || byte_addr == 0xA01FFFu || byte_addr == 0xA11100u) {
+    if (byte_addr == 0xA01FFDu || byte_addr == 0xA01FFFu) {
         if (s_interleave_active && !s_in_vblank_service) {
             if (byte_addr == s_z80poll_last_addr) {
                 if (++s_z80poll_streak > 256) {

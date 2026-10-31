@@ -40,6 +40,9 @@ static int               s_playback_enabled = 0;
 static rab_bridge s_bridge;
 static int        s_bridge_ready = 0;
 static uint64_t   s_prev_underruns = 0;
+static Uint64     s_perf_freq = 0;
+static uint32_t   s_callback_peak_us = 0; /* device lock protects callback data */
+static AudioHostTiming s_host_timing;   /* written/read on the main thread */
 
 /* SDL pull callback: the device asks for `len` bytes of stereo S16; the bridge
  * resamples from the internal mix rate to the device rate under DRC and emits
@@ -50,7 +53,11 @@ static void genesis_audio_callback(void *user, Uint8 *stream, int len)
     (void)user;
     if (!s_bridge_ready) { memset(stream, 0, (size_t)len); return; }
     int frames = len / (int)(2 * sizeof(int16_t)); /* stereo S16 */
+    Uint64 begin = SDL_GetPerformanceCounter();
     rab_pull(&s_bridge, (int16_t *)stream, frames);
+    uint32_t elapsed = (uint32_t)((SDL_GetPerformanceCounter() - begin)
+                                * 1000000ull / s_perf_freq);
+    if (elapsed > s_callback_peak_us) s_callback_peak_us = elapsed;
 }
 
 /* Audio stats */
@@ -75,7 +82,6 @@ static struct {
 static uint32_t s_depth_head = 0;   /* next write slot */
 static uint32_t s_depth_count = 0;  /* total entries ever written */
 static Uint64   s_last_flush_pc = 0;
-static Uint64   s_perf_freq = 0;
 
 #define EVT_RING_SIZE 256
 static AudioDeliveryEvent s_evt_ring[EVT_RING_SIZE];
@@ -113,9 +119,13 @@ static uint32_t s_wav_data_bytes = 0;
  * PSG rate ~223721 Hz / 50 Hz (PAL) ≈ 4475 frames.  Double for headroom. */
 #define OUT_BUF_FRAMES 16384
 static int16_t s_out[OUT_BUF_FRAMES * 2];
+static AudioExtraSource s_extra_source;
+static double s_mix_rate;
+void audio_set_extra_source(AudioExtraSource source) { s_extra_source = source; }
 
 int audio_init(int psg_sample_rate)
 {
+    s_mix_rate = (double)psg_sample_rate;
     SDL_AudioSpec want, got;
     SDL_memset(&want, 0, sizeof(want));
     /* Open at a normal host rate and let the DRC bridge own the (large)
@@ -159,6 +169,8 @@ int audio_init(int psg_sample_rate)
     s_playback_enabled = 1;
     s_prev_underruns = 0;
     s_perf_freq = SDL_GetPerformanceFrequency();
+    s_callback_peak_us = 0;
+    memset(&s_host_timing, 0, sizeof s_host_timing);
     s_stats.min_queued_bytes = UINT32_MAX;  /* low-water: nothing sampled yet */
 
     /* No manual silence prime: the bridge holds output muted until its ring
@@ -173,6 +185,7 @@ int audio_init(int psg_sample_rate)
 
 void audio_close(void)
 {
+    s_extra_source = NULL;
     if (s_dev != 0) {
         SDL_LockAudioDevice(s_dev);
         s_bridge_ready = 0;
@@ -283,6 +296,8 @@ void audio_flush(uint32_t wall_frame, int realtime,
      * upsampled to PSG rate). This is the single mix, a FIXED conversion, so it
      * no longer crackles. The DRC bridge owns the downsample and the servo. */
     MIX_INTO(psg_frames);
+    if (s_extra_source)
+        s_extra_source(s_out, psg_frames, s_mix_rate);
 
     /* WAV capture taps the GENERATED stream at ratio 1, before master volume
      * and before the bridge — WAV content stays bit-deterministic across runs
@@ -308,7 +323,15 @@ void audio_flush(uint32_t wall_frame, int realtime,
      * replace the old ±0.5% nearest-neighbor servo and the >8-frame hard drop
      * (every one of which was a discard = a click/crackle). */
     if (realtime && s_playback_enabled && s_bridge_ready) {
+        Uint64 begin = SDL_GetPerformanceCounter();
         SDL_LockAudioDevice(s_dev);
+        s_host_timing.lock_us = (uint32_t)((SDL_GetPerformanceCounter() - begin)
+                                         * 1000000ull / s_perf_freq);
+        s_host_timing.callback_us = s_callback_peak_us;
+        s_callback_peak_us = 0;
+        s_host_timing.conceal_events = s_bridge.stats.stretch_events;
+        s_host_timing.concealed_frames = s_bridge.stats.stretch_frames;
+        s_host_timing.fill_us = (uint32_t)(rab_fill_ms(&s_bridge) * 1000.0);
         rab_push(&s_bridge, s_out, (int)psg_frames);
         SDL_UnlockAudioDevice(s_dev);
     } else if (!realtime) {
@@ -389,6 +412,7 @@ void audio_get_bridge_counts(uint64_t *pushed, uint64_t *overflow_drops)
     *pushed = stats.pushed_frames;
     *overflow_drops = stats.overflow_drops;
 }
+void audio_get_host_timing(AudioHostTiming *out) { *out = s_host_timing; }
 uint32_t audio_queued_bytes(void) { return s_dev ? SDL_GetQueuedAudioSize(s_dev) : 0; }
 
 size_t audio_get_delivery_events(AudioDeliveryEvent *out, size_t max)
