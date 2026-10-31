@@ -2133,6 +2133,7 @@ int main(int argc, char *argv[])
      * one-shot regression test. */
     uint32_t hash_frames = 0;
     int      hash_on_mode = 0;   /* --hash-on-mode: hash on Game_Mode transitions (pacing-invariant) */
+    FILE    *state_hash_file = NULL;  /* --state-hash-out PATH */
 
     /* --input-script PATH — load a .input scripting file (button
      * timeline + RAM assertions + EXIT). See runner/input_script.h
@@ -2224,6 +2225,12 @@ int main(int argc, char *argv[])
             interlace_display_cli = argv[i] + 20;
         } else if (strcmp(argv[i], "--hash-frames") == 0 && i + 1 < argc) {
             hash_frames = (uint32_t)atol(argv[++i]);
+        } else if (strcmp(argv[i], "--state-hash-out") == 0 && i + 1 < argc) {
+            state_hash_file = fopen(argv[++i], "wx");
+            if (!state_hash_file) {
+                fprintf(stderr, "--state-hash-out: cannot create %s (it must not exist)\n", argv[i]);
+                return 2;
+            }
         } else if (strcmp(argv[i], "--hash-on-mode") == 0) {
             hash_on_mode = 1;
         } else if (strcmp(argv[i], "--input-script") == 0 && i + 1 < argc) {
@@ -2341,7 +2348,7 @@ int main(int argc, char *argv[])
          * ROM and no automation/headless flag (preserves every scripted dev /
          * CI invocation in CLAUDE.md). */
         int positional_rom = (rom_path != NULL);
-        int automation = (max_frames || hash_frames || hash_on_mode || input_script_path ||
+        int automation = (max_frames || hash_frames || hash_on_mode || state_hash_file || input_script_path ||
                           snd_dump_frame || snd_dump_vint || target_fps_cli != 0.0 ||
                           mem_write_log_spec || wav_path || s_script_start_frame ||
                           s_script_right_frame || debug_port_cli || start_turbo ||
@@ -3506,6 +3513,23 @@ session_begin:;
         frame_num++;
 
         if (g_game_spec.state_size) host_state_tick();
+
+        /* --state-hash-out: one line per frame with the picture hash and the
+         * full-state sub-hashes, for golden-run comparison. It runs before the
+         * script tick, so a script EXIT keeps this frame and a script state
+         * load cannot pair this picture with the loaded state. */
+        if (state_hash_file) {
+            CosimSubHashes sub;
+            cosim_state_hash(&sub);
+            fprintf(state_hash_file,
+                    "%u %016llx %016llx %016llx %016llx %016llx %016llx %016llx %016llx %016llx %016llx %016llx\n",
+                    frame_num, (unsigned long long)framebuf_active_hash(),
+                    (unsigned long long)sub.cpu68k, (unsigned long long)sub.timing,
+                    (unsigned long long)sub.ram, (unsigned long long)sub.z80,
+                    (unsigned long long)sub.z80ram, (unsigned long long)sub.handshake,
+                    (unsigned long long)sub.vdp, (unsigned long long)sub.fm,
+                    (unsigned long long)sub.psg, (unsigned long long)sub.evq);
+        }
 
         /* Tick the input script (if loaded). RAM read helpers route
          * through clownmdemu's main RAM via emu_read8/16 — same

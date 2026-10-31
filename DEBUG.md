@@ -169,6 +169,10 @@ bug the CPZ scroll fix surfaced.
 The runner exposes `--input-script <path>` (scripted button timeline +
 RAM assertions; see `runner/input_script.h`) and `--hash-frames N` (emits
 a `[FBHASH] frame=N w=W h=H hash=0xHEX` stderr line every N wall frames).
+`--state-hash-out <path>` creates a new file (it refuses an existing path) and
+writes one line per main-loop frame: the frame number, the picture hash and
+the `CosimSubHashes` fields in struct order. Do not use it with the TCP
+`run_extra_frames` command: frames that command advances leave gaps in the file.
 zone_smoke wires these together: launches the runner, parses the FBHASH
 lines, diffs against a checked-in baseline JSON.
 
